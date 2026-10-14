@@ -82,7 +82,14 @@ https://example.net/feed.json
 Run batch inspection:
 
 ```bash
-feedcheck scan --file feeds.txt
+# Scan default sample feeds
+feedcheck scan --file examples/feeds.txt
+
+# Scan real Indonesian national news feeds
+feedcheck scan --file examples/feeds-indonesia.txt
+
+# Scan real Malaysian national news feeds
+feedcheck scan --file examples/feeds-malaysia.txt
 ```
 
 Scan with custom worker concurrency and staleness threshold:

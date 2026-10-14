@@ -1,0 +1,47 @@
+# ==============================================================================
+# Feed RSS Media Nasional Indonesia
+# Kumpulan endpoint feed RSS berita nasional Indonesia yang aktif dan terverifikasi
+# ==============================================================================
+
+# --- ANTARA News (Lembaga Kantor Berita Nasional) ---
+https://www.antaranews.com/rss/terkini.xml
+https://www.antaranews.com/rss/top-news.xml
+https://www.antaranews.com/rss/ekonomi.xml
+https://www.antaranews.com/rss/tekno.xml
+https://www.antaranews.com/rss/dunia.xml
+
+# --- CNN Indonesia ---
+https://www.cnnindonesia.com/rss
+https://www.cnnindonesia.com/nasional/rss
+https://www.cnnindonesia.com/ekonomi/rss
+https://www.cnnindonesia.com/internasional/rss
+https://www.cnnindonesia.com/teknologi/rss
+
+# --- CNBC Indonesia ---
+https://www.cnbcindonesia.com/rss
+https://www.cnbcindonesia.com/news/rss
+https://www.cnbcindonesia.com/market/rss
+https://www.cnbcindonesia.com/tech/rss
+
+# --- Tempo.co ---
+https://rss.tempo.co/
+
+# --- Republika Online ---
+https://www.republika.co.id/rss
+https://www.republika.co.id/rss/news
+https://www.republika.co.id/rss/ekonomi
+
+# --- Okezone ---
+https://sindikasi.okezone.com/index.php/rss/0/RSS2.0
+https://sindikasi.okezone.com/index.php/rss/1/RSS2.0
+https://sindikasi.okezone.com/index.php/rss/2/RSS2.0
+https://sindikasi.okezone.com/index.php/rss/16/RSS2.0
+
+# --- Sindonews ---
+https://www.sindonews.com/feed
+https://nasional.sindonews.com/rss
+https://ekbis.sindonews.com/rss
+https://tekno.sindonews.com/rss
+
+# --- Media Indonesia ---
+https://mediaindonesia.com/feed

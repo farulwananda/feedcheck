@@ -1,0 +1,39 @@
+# ==============================================================================
+# Feed RSS Media Nasional Malaysia
+# Kumpulan endpoint feed RSS berita nasional Malaysia yang aktif dan terverifikasi
+# ==============================================================================
+
+# --- Malay Mail ---
+https://www.malaymail.com/feed/rss
+https://www.malaymail.com/feed/rss/malaysia
+https://www.malaymail.com/feed/rss/money
+https://www.malaymail.com/feed/rss/world
+https://www.malaymail.com/feed/rss/sports
+https://www.malaymail.com/feed/rss/tech-gadgets
+
+# --- Malaysiakini ---
+https://www.malaysiakini.com/rss/en/news.rss
+https://www.malaysiakini.com/rss/my/news.rss
+
+# --- Free Malaysia Today (FMT) ---
+https://www.freemalaysiatoday.com/feeds/rss/headlines
+https://www.freemalaysiatoday.com/feeds/rss/nation
+https://www.freemalaysiatoday.com/feeds/rss/business
+https://www.freemalaysiatoday.com/feeds/rss/opinion
+https://www.freemalaysiatoday.com/feeds/rss/world
+
+# --- New Straits Times (NST) ---
+https://www.nst.com.my/feed
+
+# --- Utusan Malaysia ---
+https://www.utusan.com.my/feed/
+
+# --- Berita Harian (Malaysia) ---
+https://www.bharian.com.my/feed
+
+# --- Harian Metro ---
+https://www.hmetro.com.my/feed
+
+# --- Tech & Media (Malaysia) ---
+https://soyacincau.com/feed/
+https://www.lowyat.net/feed/
