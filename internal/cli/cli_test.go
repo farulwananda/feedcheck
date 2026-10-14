@@ -40,6 +40,13 @@ func TestCLI_Web_Help(t *testing.T) {
 		t.Errorf("code = %d, want %d", code, ExitSuccess)
 	}
 }
+func TestCLI_Watch_Help(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"watch", "--help"}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Errorf("code = %d, want %d", code, ExitSuccess)
+	}
+}
 
 func TestCLI_NoArgs(t *testing.T) {
 	var stdout, stderr bytes.Buffer
@@ -102,7 +109,7 @@ func TestCLI_Scan_MissingFile(t *testing.T) {
 	if code != ExitUsage {
 		t.Errorf("code = %d, want %d", code, ExitUsage)
 	}
-	if !strings.Contains(stderr.String(), "--file flag is required") {
+	if !strings.Contains(stderr.String(), "--file or --opml flag is required") {
 		t.Errorf("stderr missing --file notice: %s", stderr.String())
 	}
 }
@@ -237,5 +244,107 @@ func TestParseBytes(t *testing.T) {
 		if got != tc.want {
 			t.Errorf("parseBytes(%q) = %d, want %d", tc.input, got, tc.want)
 		}
+	}
+}
+func TestCLI_Discover(t *testing.T) {
+	htmlContent := `<html><head><link rel="alternate" type="application/rss+xml" title="Test RSS" href="/rss.xml" /></head><body></body></html>`
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		w.Write([]byte(htmlContent))
+	}))
+	defer ts.Close()
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"discover", ts.URL}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Fatalf("discover failed with code %d, stderr: %s", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "Test RSS") {
+		t.Errorf("stdout missing discovered title: %s", stdout.String())
+	}
+}
+
+func TestCLI_OPML_Export_And_Scan(t *testing.T) {
+	fixture := loadFixture(t, "valid-rss.xml")
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write(fixture)
+	}))
+	defer ts.Close()
+
+	tempDir := t.TempDir()
+	txtPath := filepath.Join(tempDir, "urls.txt")
+	opmlPath := filepath.Join(tempDir, "feeds.opml")
+
+	if err := os.WriteFile(txtPath, []byte(ts.URL+"\n"), 0644); err != nil {
+		t.Fatalf("failed to write txt file: %v", err)
+	}
+
+	// 1. Export to OPML
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"opml", "export", "--file", txtPath, "--output", opmlPath}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Fatalf("opml export failed: %s", stderr.String())
+	}
+
+	// 2. Scan via --opml
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"scan", "--opml", opmlPath, "--stale-after", "100000h"}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Fatalf("scan --opml failed with code %d: %s", code, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "HEALTHY") {
+		t.Errorf("expected HEALTHY in scan stdout: %s", stdout.String())
+	}
+}
+
+func TestCLI_Formats_Markdown_CSV(t *testing.T) {
+	fixture := loadFixture(t, "valid-rss.xml")
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/rss+xml")
+		w.Write(fixture)
+	}))
+	defer ts.Close()
+
+	// Markdown
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"check", "--format", "markdown", "--stale-after", "100000h", ts.URL}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Fatalf("markdown check failed: %s", stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "| Source | Status |") {
+		t.Errorf("missing markdown table header: %s", stdout.String())
+	}
+
+	// CSV
+	stdout.Reset()
+	stderr.Reset()
+	code = Run([]string{"check", "--format", "csv", "--stale-after", "100000h", ts.URL}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Fatalf("csv check failed: %s", stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "input_url,final_url,status") {
+		t.Errorf("missing csv header: %s", stdout.String())
+	}
+}
+
+func TestCLI_Scan_Filters(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Not Found", http.StatusNotFound)
+	}))
+	defer ts.Close()
+
+	tempDir := t.TempDir()
+	feedListPath := filepath.Join(tempDir, "test_feeds.txt")
+	_ = os.WriteFile(feedListPath, []byte(ts.URL+"\n"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"scan", "--file", feedListPath, "--only-failures"}, &stdout, &stderr)
+	if code != ExitFailure {
+		t.Errorf("expected ExitFailure (1), got %d", code)
+	}
+	if !strings.Contains(stdout.String(), "HTTP_ERROR") {
+		t.Errorf("expected HTTP_ERROR in filtered stdout: %s", stdout.String())
 	}
 }

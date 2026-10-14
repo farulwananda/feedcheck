@@ -23,12 +23,14 @@ Designed for developers, data engineers, aggregator maintainers, and news pipeli
 ## Features
 
 - **Multi-Format Support:** Inspects RSS 0.9x/1.0/2.0, Atom 1.0, and JSON Feed 1.0/1.1.
+- **Feed Auto-Discovery:** Discovers hidden RSS/Atom feeds directly from website homepages via `<link rel="alternate">` tags.
+- **OPML 2.0 Import & Export:** Full support for inspecting and exporting OPML subscription files from RSS readers.
 - **HTTP & Transport Diagnostics:** Tracks status codes, redirects, final URLs, response times, and payload sizes.
 - **Freshness Evaluation:** Evaluates published/updated timestamps across all items with configurable staleness thresholds.
-- **Bounded Concurrency:** Fast parallel batch inspections using a controlled worker pool that preserves input order.
-- **Safe Resource Limits:** Strict response body capping (default 5 MiB), redirect limits (max 5), and per-URL timeouts.
-- **CI/CD Ready:** Distinct exit codes (`0` for success, `1` for failures, `2` for errors) and pure JSON output mode.
-- **Zero Heavy Infrastructure:** Self-contained single binary with no database or external servers required.
+- **Bounded Concurrency & Filtering:** Fast parallel batch inspections with `--only-failures` and status filters (`--filter`).
+- **Multiple Output Formats:** Formats output in `table`, `json`, `markdown`, or `csv`.
+- **Watchdog Monitor Mode:** Continuous health monitoring with configurable polling intervals via `feedcheck watch`.
+- **Integrated Web Reader:** Apple-style standalone reader with zero-CORS local proxy via `feedcheck web`.
 
 ---
 
@@ -104,7 +106,49 @@ Export results to a JSON file for pipeline automation:
 feedcheck scan --file feeds.txt --format json --output report.json
 ```
 
-### 3. Web RSS Reader
+### 3. Feed Auto-Discovery
+
+Find RSS, Atom, or JSON Feed URLs automatically from any website homepage:
+
+```bash
+feedcheck discover https://techcrunch.com
+```
+
+### 4. OPML Support & Filtering
+
+Scan subscriptions exported from RSS readers (Feedly, NetNewsWire, Miniflux), showing only failing feeds:
+
+```bash
+feedcheck scan --opml subscriptions.opml --only-failures
+```
+
+Export plain text URL lists to standard OPML 2.0 XML:
+
+```bash
+feedcheck opml export --file examples/feeds.txt --output subscriptions.opml
+```
+
+### 5. Watchdog Monitoring Mode
+
+Continuously audit feed health at regular intervals:
+
+```bash
+feedcheck watch --file examples/feeds.txt --interval 10m --only-failures
+```
+
+### 6. Markdown & CSV Reporting
+
+Generate GitHub-flavored Markdown tables or CSV spreadsheets:
+
+```bash
+# Markdown table output
+feedcheck scan --file examples/feeds.txt --format markdown
+
+# CSV export
+feedcheck scan --file examples/feeds.txt --format csv --output report.csv
+```
+
+### 7. Web RSS Reader
 
 This repository includes a standalone **Web RSS Reader** interface featuring Apple design principles (San Francisco typography, dark aesthetic, Apple System Blue accents, frosted glass cards, reader modal view, and segmented controls).
 

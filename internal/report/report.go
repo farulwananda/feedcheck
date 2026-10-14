@@ -1,9 +1,11 @@
 package report
 
 import (
+	"encoding/csv"
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -113,6 +115,145 @@ func WriteTable(w io.Writer, rep Report, now time.Time) error {
 	_, err := fmt.Fprintf(w, "\nChecked: %d | Healthy: %d | Warnings: %d | Failures: %d\n",
 		rep.Summary.Total, rep.Summary.Healthy, rep.Summary.Warnings, rep.Summary.Failures)
 	return err
+}
+
+// WriteMarkdown formats the report as a GitHub-flavored Markdown table.
+func WriteMarkdown(w io.Writer, rep Report, now time.Time) error {
+	if _, err := fmt.Fprintln(w, "| Source | Status | Items | Latest | HTTP | Time | Notes |"); err != nil {
+		return err
+	}
+	if _, err := fmt.Fprintln(w, "|---|---|---|---|---|---|---|"); err != nil {
+		return err
+	}
+
+	for _, r := range rep.Results {
+		source := simplifyURL(r.InputURL)
+		status := fmt.Sprintf("`%s`", strings.ToUpper(string(r.Status)))
+
+		itemsStr := "-"
+		if r.ItemsCount != nil {
+			itemsStr = fmt.Sprintf("%d", *r.ItemsCount)
+		}
+
+		latestStr := "-"
+		if r.LatestItemAt != nil {
+			latestStr = formatRelativeTime(*r.LatestItemAt, now)
+		}
+
+		httpStr := "-"
+		if r.HTTPStatus != nil {
+			httpStr = fmt.Sprintf("%d", *r.HTTPStatus)
+		}
+
+		timeStr := formatDuration(r.DurationMS)
+		notes := formatNotes(r)
+
+		line := fmt.Sprintf("| %s | %s | %s | %s | %s | %s | %s |", source, status, itemsStr, latestStr, httpStr, timeStr, notes)
+		if _, err := fmt.Fprintln(w, line); err != nil {
+			return err
+		}
+	}
+
+	_, err := fmt.Fprintf(w, "\n**Summary:** Checked: %d | Healthy: %d | Warnings: %d | Failures: %d\n",
+		rep.Summary.Total, rep.Summary.Healthy, rep.Summary.Warnings, rep.Summary.Failures)
+	return err
+}
+
+// WriteCSV writes the report results in standard CSV format.
+func WriteCSV(w io.Writer, rep Report) error {
+	cw := csv.NewWriter(w)
+	defer cw.Flush()
+
+	header := []string{
+		"input_url",
+		"final_url",
+		"status",
+		"http_status",
+		"feed_type",
+		"title",
+		"items_count",
+		"latest_item_at",
+		"duration_ms",
+		"redirect_count",
+		"warnings",
+		"error_code",
+	}
+	if err := cw.Write(header); err != nil {
+		return err
+	}
+
+	for _, r := range rep.Results {
+		httpStatus := ""
+		if r.HTTPStatus != nil {
+			httpStatus = strconv.Itoa(*r.HTTPStatus)
+		}
+		feedType := ""
+		if r.FeedType != nil {
+			feedType = *r.FeedType
+		}
+		title := ""
+		if r.Title != nil {
+			title = *r.Title
+		}
+		itemsCount := ""
+		if r.ItemsCount != nil {
+			itemsCount = strconv.Itoa(*r.ItemsCount)
+		}
+		latestItemAt := ""
+		if r.LatestItemAt != nil {
+			latestItemAt = *r.LatestItemAt
+		}
+		errorCode := ""
+		if r.ErrorCode != nil {
+			errorCode = *r.ErrorCode
+		}
+
+		row := []string{
+			r.InputURL,
+			r.FinalURL,
+			string(r.Status),
+			httpStatus,
+			feedType,
+			title,
+			itemsCount,
+			latestItemAt,
+			strconv.FormatInt(r.DurationMS, 10),
+			strconv.Itoa(r.RedirectCount),
+			strings.Join(r.Warnings, ";"),
+			errorCode,
+		}
+		if err := cw.Write(row); err != nil {
+			return err
+		}
+	}
+
+	return cw.Error()
+}
+
+// FilterResults filters check results based on onlyFailures or a list of allowed statuses.
+func FilterResults(results []checker.CheckResult, onlyFailures bool, allowedStatuses []string) []checker.CheckResult {
+	if !onlyFailures && len(allowedStatuses) == 0 {
+		return results
+	}
+
+	statusSet := make(map[string]struct{})
+	for _, s := range allowedStatuses {
+		statusSet[strings.ToLower(strings.TrimSpace(s))] = struct{}{}
+	}
+
+	var filtered []checker.CheckResult
+	for _, r := range results {
+		if onlyFailures && !r.Status.IsFailure() {
+			continue
+		}
+		if len(statusSet) > 0 {
+			if _, match := statusSet[strings.ToLower(string(r.Status))]; !match {
+				continue
+			}
+		}
+		filtered = append(filtered, r)
+	}
+	return filtered
 }
 
 func simplifyURL(rawURL string) string {
