@@ -108,17 +108,17 @@ feedcheck scan --file feeds.txt --format json --output report.json
 
 Repositori ini juga menyertakan **Web RSS Reader** modern bergaya [Beautiful UI](https://www.beautifului.dev/) dengan Tailwind CSS, dark mode elegan, filter pencarian instan (`⌘K`), reader view bebas distraksi, serta preset feed nasional Indonesia dan Malaysia:
 
-Cukup buka berkas `index.html` di browser Anda:
+Cukup buka berkas `web/index.html` di browser Anda:
 
 ```bash
 # macOS
-open index.html
+open web/index.html
 
 # Linux
-xdg-open index.html
+xdg-open web/index.html
 
 # Windows
-start index.html
+start web/index.html
 ```
 
 ---
