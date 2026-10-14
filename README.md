@@ -104,11 +104,22 @@ Export results to a JSON file for pipeline automation:
 feedcheck scan --file feeds.txt --format json --output report.json
 ```
 
-### 3. Modern Web RSS Reader
+### 3. Apple-Style Web RSS Reader
 
-Repositori ini juga menyertakan **Web RSS Reader** modern bergaya [Beautiful UI](https://www.beautifului.dev/) dengan Tailwind CSS, dark mode elegan, filter pencarian instan (`⌘K`), reader view bebas distraksi, serta preset feed nasional Indonesia dan Malaysia:
+Repositori ini menyertakan antarmuka **Web RSS Reader** bergaya Apple Design (SF typography, pure black background, Apple System Blue accent, frosted glass cards, reader modal view, dan segmented controls).
 
-Cukup buka berkas `web/index.html` di browser Anda:
+#### Opsi 1: Lewat CLI (Direkomendasikan — Bebas Kendala CORS)
+
+Menjalankan local server dan proxy terintegrasi Go, menjamin seluruh feed (Media Indonesia, Malay Mail, Malaysiakini, CNN, Tempo, dsb.) termuat seketika tanpa diblokir oleh CORS browser atau Cloudflare:
+
+```bash
+feedcheck web
+```
+*Browser Anda akan terbuka otomatis ke `http://localhost:8080`.*
+
+#### Opsi 2: Buka Berkas Mandiri (Standalone)
+
+Atau buka langsung berkas `web/index.html` di browser (menggunakan multi-tier fallback engine: `rss2json`, direct, dan CORS proxies):
 
 ```bash
 # macOS
@@ -120,7 +131,6 @@ xdg-open web/index.html
 # Windows
 start web/index.html
 ```
-
 ---
 
 ## Status Classification

@@ -5,17 +5,19 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/farulwananda/feedcheck/internal/checker"
+	"github.com/farulwananda/feedcheck/internal/input"
+	"github.com/farulwananda/feedcheck/internal/report"
 	"io"
+	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
 	"strconv"
 	"strings"
 	"syscall"
 	"time"
-
-	"github.com/farulwananda/feedcheck/internal/checker"
-	"github.com/farulwananda/feedcheck/internal/input"
-	"github.com/farulwananda/feedcheck/internal/report"
 )
 
 const (
@@ -32,6 +34,7 @@ Usage:
 Commands:
   check   Inspect the health of a single feed URL
   scan    Inspect multiple feed URLs from an input file
+  web     Launch the modern Apple News-style Web RSS Reader
 
 Flags (check):
   --format string        Output format: 'table' or 'json' (default "table")
@@ -72,6 +75,8 @@ func Run(args []string, stdout, stderr io.Writer) int {
 		return runCheck(args[1:], stdout, stderr)
 	case "scan":
 		return runScan(args[1:], stdout, stderr)
+	case "web", "serve", "reader":
+		return runWeb(args[1:], stdout, stderr)
 	default:
 		fmt.Fprintf(stderr, "feedcheck: unknown command %q\nRun 'feedcheck --help' for usage.\n", cmd)
 		return ExitUsage
@@ -242,6 +247,114 @@ func writeReport(rep report.Report, format, outputFile string, stdout, stderr io
 		return report.WriteJSON(dest, rep)
 	}
 	return report.WriteTable(dest, rep, now)
+}
+func runWeb(args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("web", flag.ContinueOnError)
+	fs.SetOutput(stderr)
+
+	port := fs.Int("port", 8080, "Port to listen on")
+	noOpen := fs.Bool("no-open", false, "Do not automatically launch browser")
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return ExitSuccess
+		}
+		return ExitUsage
+	}
+
+	htmlContent, err := os.ReadFile("web/index.html")
+	if err != nil {
+		htmlContent, err = os.ReadFile("index.html")
+	}
+	if err != nil {
+		fmt.Fprintf(stderr, "feedcheck web: could not locate web/index.html: %v\n", err)
+		return ExitUsage
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(htmlContent)
+	})
+
+	client := &http.Client{
+		Timeout: 15 * time.Second,
+	}
+
+	mux.HandleFunc("/api/feed", func(w http.ResponseWriter, r *http.Request) {
+		targetURL := r.URL.Query().Get("url")
+		if targetURL == "" {
+			http.Error(w, "missing 'url' query parameter", http.StatusBadRequest)
+			return
+		}
+
+		validated, err := input.ValidateURL(targetURL)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, validated, nil)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		req.Header.Set("User-Agent", "feedcheck/1.0 (+https://github.com/farulwananda/feedcheck)")
+		req.Header.Set("Accept", "application/rss+xml, application/atom+xml, application/feed+json, application/xml, text/xml, */*")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("fetch error: %v", err), http.StatusBadGateway)
+			return
+		}
+		defer resp.Body.Close()
+
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
+		io.Copy(w, resp.Body)
+	})
+
+	server := &http.Server{
+		Addr:    fmt.Sprintf("127.0.0.1:%d", *port),
+		Handler: mux,
+	}
+
+	addr := fmt.Sprintf("http://127.0.0.1:%d", *port)
+	fmt.Fprintf(stdout, "feedcheck: Apple News RSS Reader running at %s\nPress Ctrl+C to stop.\n", addr)
+
+	if !*noOpen {
+		go openBrowser(addr)
+	}
+
+	sigCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	go func() {
+		<-sigCtx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+		defer cancel()
+		_ = server.Shutdown(shutdownCtx)
+	}()
+
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		fmt.Fprintf(stderr, "feedcheck web: server error: %v\n", err)
+		return ExitUsage
+	}
+
+	return ExitSuccess
+}
+
+func openBrowser(url string) {
+	var cmd *exec.Cmd
+	switch runtime.GOOS {
+	case "darwin":
+		cmd = exec.Command("open", url)
+	case "windows":
+		cmd = exec.Command("cmd", "/c", "start", url)
+	default:
+		cmd = exec.Command("xdg-open", url)
+	}
+	_ = cmd.Start()
 }
 
 func parseBytes(s string) (int64, error) {

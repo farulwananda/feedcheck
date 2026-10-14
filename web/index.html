@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Feedcheck Reader — Modern RSS & Atom Reader</title>
+  <title>Feedcheck — Apple News Style RSS Reader</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -14,13 +14,25 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            mono: ['"JetBrains Mono"', 'monospace'],
+            sans: ['-apple-system', 'BlinkMacSystemFont', '"SF Pro Display"', '"SF Pro Text"', 'Inter', 'sans-serif'],
+            mono: ['"SF Mono"', 'Menlo', 'Monaco', 'Courier New', 'monospace'],
           },
           colors: {
-            border: 'rgba(255, 255, 255, 0.08)',
-            surface: '#121216',
-            elevated: '#1a1a20',
+            apple: {
+              black: '#000000',
+              bg: '#0a0a0c',
+              card: '#1c1c1e',
+              cardHover: '#242426',
+              elevated: '#2c2c2e',
+              border: 'rgba(255, 255, 255, 0.08)',
+              borderHover: 'rgba(255, 255, 255, 0.16)',
+              blue: '#0071e3',
+              blueHover: '#0077ed',
+              blueLight: '#0a84ff',
+              text: '#f5f5f7',
+              muted: '#86868b',
+              subtle: '#6e6e73'
+            }
           }
         }
       }
@@ -28,26 +40,35 @@
   </script>
   <style>
     body {
-      background-color: #09090b;
-      color: #fafafa;
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #000000;
+      color: #f5f5f7;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
     }
-    .mesh-glow {
-      background: radial-gradient(ellipse 70% 40% at 50% -10%, rgba(99, 102, 241, 0.12), rgba(20, 184, 166, 0.04), transparent);
+    .apple-glass {
+      background: rgba(28, 28, 30, 0.75);
+      backdrop-filter: blur(25px);
+      -webkit-backdrop-filter: blur(25px);
+    }
+    .apple-nav {
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(30px);
+      -webkit-backdrop-filter: blur(30px);
     }
     .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     .custom-scrollbar::-webkit-scrollbar-track {
       background: transparent;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #27272a;
+      background: #2c2c2e;
       border-radius: 9999px;
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #3f3f46;
+      background: #3a3a3c;
     }
     .line-clamp-2 {
       display: -webkit-box;
@@ -63,63 +84,59 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-indigo-500/30 selection:text-indigo-200">
-  <div class="fixed inset-0 mesh-glow pointer-events-none"></div>
+<body class="min-h-screen flex flex-col antialiased selection:bg-[#0071e3]/30 selection:text-white">
 
-  <!-- App Header -->
-  <header class="sticky top-0 z-30 backdrop-blur-xl bg-[#09090b]/80 border-b border-white/[0.06]">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+  <!-- Apple Minimal Navigation Bar -->
+  <header class="sticky top-0 z-40 apple-nav border-b border-white/[0.08] transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+      
       <!-- Brand & Mobile Toggle -->
       <div class="flex items-center gap-3">
-        <button id="mobileMenuBtn" class="lg:hidden p-2 rounded-xl bg-zinc-900 border border-white/[0.08] hover:bg-zinc-800 text-zinc-400 hover:text-white transition">
+        <button id="mobileMenuBtn" class="lg:hidden p-1.5 rounded-lg bg-[#1c1c1e] text-[#86868b] hover:text-[#f5f5f7] border border-white/[0.06] transition">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 via-indigo-600 to-cyan-400 p-[1px] shadow-lg shadow-indigo-500/20">
-            <div class="w-full h-full bg-zinc-950 rounded-[11px] flex items-center justify-center">
-              <svg class="w-5 h-5 text-indigo-400" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="6.18" cy="17.82" r="2.18"/>
-                <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/>
-              </svg>
-            </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Apple-style RSS Icon -->
+          <div class="w-8 h-8 rounded-xl bg-gradient-to-b from-[#0a84ff] to-[#0071e3] p-[1px] shadow-sm shadow-[#0071e3]/20 flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="6.18" cy="17.82" r="2.18"/>
+              <path d="M4 4.44v2.83c7.03 0 12.73 5.7 12.73 12.73h2.83c0-8.59-6.97-15.56-15.56-15.56zm0 5.66v2.83c3.9 0 7.07 3.17 7.07 7.07h2.83c0-5.47-4.43-9.9-9.9-9.9z"/>
+            </svg>
           </div>
-          <div>
-            <div class="flex items-center gap-1.5">
-              <span class="font-bold tracking-tight text-base sm:text-lg text-white">feedcheck</span>
-              <span class="text-[11px] font-semibold uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">reader</span>
-            </div>
-          </div>
+          <span class="font-semibold text-[15px] tracking-tight text-[#f5f5f7]">Feedcheck</span>
+          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/[0.08] text-[#86868b] border border-white/[0.04]">News</span>
         </div>
       </div>
 
-      <!-- Live Search / Filter Input -->
-      <div class="flex-1 max-w-md relative hidden sm:block">
+      <!-- Apple-style Search Pill -->
+      <div class="flex-1 max-w-sm relative hidden sm:block">
         <div class="relative">
-          <svg class="w-4 h-4 text-zinc-500 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="w-3.5 h-3.5 text-[#86868b] absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
           <input 
             type="text" 
             id="searchInput"
-            placeholder="Cari berita atau kata kunci... (Tekan /)"
-            class="w-full bg-zinc-900/80 border border-white/[0.08] rounded-xl pl-10 pr-12 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/60 focus:ring-1 focus:ring-indigo-500/40 transition"
+            placeholder="Cari berita... (⌘K)"
+            class="w-full bg-[#1c1c1e]/90 border border-white/[0.08] rounded-full pl-9 pr-10 py-1.5 text-xs text-[#f5f5f7] placeholder-[#86868b] focus:outline-none focus:border-[#0a84ff] focus:ring-1 focus:ring-[#0a84ff] transition"
           >
           <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-            <kbd class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/50">⌘K</kbd>
+            <kbd class="text-[10px] font-mono font-medium px-1.5 py-0.5 rounded bg-white/[0.08] text-[#86868b]">⌘K</kbd>
           </div>
         </div>
       </div>
 
-      <!-- Action buttons -->
+      <!-- Controls -->
       <div class="flex items-center gap-2">
         <button 
           id="reloadBtn" 
           title="Muat Ulang Feed (R)"
-          class="p-2 sm:px-3 sm:py-2 rounded-xl bg-zinc-900 border border-white/[0.08] hover:bg-zinc-800 hover:border-zinc-700 text-zinc-300 text-xs font-medium flex items-center gap-2 transition active:scale-95"
+          class="px-3 py-1.5 rounded-full bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-white/[0.08] text-[#f5f5f7] text-xs font-medium flex items-center gap-1.5 transition active:scale-95"
         >
-          <svg id="reloadIcon" class="w-4 h-4 text-zinc-400 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg id="reloadIcon" class="w-3.5 h-3.5 text-[#86868b] transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
           <span class="hidden sm:inline">Refresh</span>
@@ -128,9 +145,9 @@
         <a 
           href="https://github.com/farulwananda/feedcheck" 
           target="_blank"
-          class="p-2 sm:px-3 sm:py-2 rounded-xl bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] hover:text-white text-zinc-400 text-xs font-medium flex items-center gap-1.5 transition"
+          class="px-3 py-1.5 rounded-full bg-white/[0.06] hover:bg-white/[0.1] text-[#86868b] hover:text-[#f5f5f7] text-xs font-medium flex items-center gap-1.5 transition border border-white/[0.04]"
         >
-          <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+          <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
           </svg>
           <span class="hidden sm:inline">GitHub</span>
@@ -139,100 +156,108 @@
     </div>
   </header>
 
-  <!-- Main Layout -->
+  <!-- Main Container -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex gap-8">
-    <!-- Sidebar / Feed Selector -->
-    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 bg-[#09090b] lg:bg-transparent p-5 lg:p-0 border-r lg:border-r-0 border-white/[0.08] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col gap-6 custom-scrollbar overflow-y-auto">
-      <!-- Mobile Close -->
+    
+    <!-- Apple macOS-style Sidebar -->
+    <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#121214] lg:bg-transparent p-5 lg:p-0 border-r lg:border-r-0 border-white/[0.08] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col gap-5 custom-scrollbar overflow-y-auto">
+      
+      <!-- Mobile Close Button -->
       <div class="flex lg:hidden items-center justify-between pb-3 border-b border-white/[0.08]">
-        <span class="font-bold text-sm text-zinc-300">Pilih Feed RSS</span>
-        <button id="closeMobileMenuBtn" class="p-1.5 rounded-lg bg-zinc-900 text-zinc-400 hover:text-white">
+        <span class="font-semibold text-sm text-[#f5f5f7]">Daftar Feed</span>
+        <button id="closeMobileMenuBtn" class="p-1 rounded-lg text-[#86868b] hover:text-[#f5f5f7]">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
 
-      <!-- Custom Feed Input -->
-      <div class="p-4 rounded-2xl bg-zinc-900/60 border border-white/[0.06] backdrop-blur-sm shadow-sm">
-        <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-400 mb-2 font-mono">Input Custom Feed</label>
+      <!-- Custom Feed Input (Apple Grouped Style) -->
+      <div class="p-3.5 rounded-2xl bg-[#1c1c1e] border border-white/[0.06] shadow-sm">
+        <label class="block text-[11px] font-semibold text-[#86868b] mb-2 uppercase tracking-wider">Custom Feed URL</label>
         <form id="customFeedForm" class="flex flex-col gap-2">
           <input 
             type="url" 
             id="customFeedInput" 
             placeholder="https://domain.com/feed.xml" 
             required
-            class="w-full bg-zinc-950/80 border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-indigo-500/60 font-mono"
+            class="w-full bg-[#2c2c2e] border border-white/[0.06] rounded-xl px-3 py-1.5 text-xs text-[#f5f5f7] placeholder-[#6e6e73] focus:outline-none focus:border-[#0a84ff] transition"
           >
           <button 
             type="submit" 
-            class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold tracking-wide transition shadow-md shadow-indigo-600/20 active:scale-98"
+            class="w-full py-1.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-xl text-xs font-medium transition active:scale-98"
           >
-            Muat Feed
+            Buka Feed
           </button>
         </form>
       </div>
 
-      <!-- Regional Preset Feeds -->
+      <!-- Apple Segmented Control for Region Filter -->
+      <div class="flex bg-[#1c1c1e] p-1 rounded-xl border border-white/[0.06]">
+        <button id="filterAllBtn" class="flex-1 py-1 rounded-lg text-xs font-medium text-white bg-[#2c2c2e] shadow-sm transition">Semua</button>
+        <button id="filterIdBtn" class="flex-1 py-1 rounded-lg text-xs font-medium text-[#86868b] hover:text-white transition">🇮🇩 ID</button>
+        <button id="filterMyBtn" class="flex-1 py-1 rounded-lg text-xs font-medium text-[#86868b] hover:text-white transition">🇲🇾 MY</button>
+      </div>
+
+      <!-- Feed List Sections -->
       <div class="flex flex-col gap-4">
-        <!-- Indonesia -->
-        <div>
-          <div class="flex items-center justify-between mb-2 px-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1.5">
-              <span>🇮🇩</span> Indonesia
-            </span>
-            <span class="text-[10px] font-mono text-zinc-600">8 portal</span>
+        <!-- Indonesia Section -->
+        <div id="idSection">
+          <div class="flex items-center justify-between mb-1.5 px-2">
+            <span class="text-[11px] font-semibold tracking-wider text-[#86868b] uppercase">Indonesia</span>
+            <span class="text-[10px] text-[#6e6e73]">8 Feed</span>
           </div>
-          <div class="flex flex-col gap-1" id="idFeedList">
-            <!-- Populated via JS -->
+          <div class="flex flex-col gap-0.5" id="idFeedList">
+            <!-- Rendered by JS -->
           </div>
         </div>
 
-        <!-- Malaysia -->
-        <div>
-          <div class="flex items-center justify-between mb-2 px-1">
-            <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 font-mono flex items-center gap-1.5">
-              <span>🇲🇾</span> Malaysia
-            </span>
-            <span class="text-[10px] font-mono text-zinc-600">7 portal</span>
+        <!-- Malaysia Section -->
+        <div id="mySection">
+          <div class="flex items-center justify-between mb-1.5 px-2">
+            <span class="text-[11px] font-semibold tracking-wider text-[#86868b] uppercase">Malaysia</span>
+            <span class="text-[10px] text-[#6e6e73]">7 Feed</span>
           </div>
-          <div class="flex flex-col gap-1" id="myFeedList">
-            <!-- Populated via JS -->
+          <div class="flex flex-col gap-0.5" id="myFeedList">
+            <!-- Rendered by JS -->
           </div>
         </div>
       </div>
     </aside>
 
-    <!-- Backdrop for Mobile Sidebar -->
-    <div id="mobileOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden lg:hidden"></div>
+    <!-- Mobile Overlay Backdrop -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden"></div>
 
     <!-- Main Content Area -->
     <main class="flex-1 min-w-0">
-      <!-- Active Feed Banner -->
-      <div class="mb-6 p-5 rounded-2xl bg-gradient-to-r from-zinc-900/80 via-zinc-900/40 to-transparent border border-white/[0.06] backdrop-blur-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      
+      <!-- Apple Hero / Header Banner -->
+      <div class="mb-6 p-5 sm:p-6 rounded-3xl bg-[#1c1c1e] border border-white/[0.08] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
-            <span id="activeRegionBadge" class="text-xs font-mono px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">🇮🇩 ID</span>
-            <h1 id="activeFeedTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-white truncate max-w-md sm:max-w-lg">Memuat Feed...</h1>
+            <span id="activeRegionBadge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#0a84ff]/15 text-[#0a84ff] border border-[#0a84ff]/30">🇮🇩 Indonesia</span>
+            <h1 id="activeFeedTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f5f7] truncate max-w-md sm:max-w-lg">Memuat Feed...</h1>
           </div>
-          <p id="activeFeedDesc" class="text-xs text-zinc-400 truncate max-w-xl">Menghubungkan ke endpoint feed</p>
+          <p id="activeFeedDesc" class="text-xs text-[#86868b] truncate max-w-xl">Mengambil konten terbaru dari sumber resmi</p>
         </div>
 
-        <!-- Status & Stats -->
-        <div class="flex items-center gap-3">
+        <!-- Right stats & layout switcher -->
+        <div class="flex items-center gap-4">
           <div class="text-right">
-            <div id="articlesCountBadge" class="text-xs font-semibold text-zinc-200">0 artikel</div>
-            <div id="lastUpdatedBadge" class="text-[11px] text-zinc-500 font-mono">Diperbarui: -</div>
+            <div id="articlesCountBadge" class="text-xs font-semibold text-[#f5f5f7]">0 artikel</div>
+            <div id="lastUpdatedBadge" class="text-[11px] text-[#86868b]">Diperbarui: -</div>
           </div>
+
           <div class="w-px h-8 bg-white/[0.08] hidden sm:block"></div>
-          <!-- Layout toggle -->
-          <div class="flex bg-zinc-900 border border-white/[0.08] rounded-xl p-1">
-            <button id="viewGridBtn" class="p-1.5 rounded-lg text-white bg-zinc-800 transition shadow-sm" title="Grid Layout">
+
+          <!-- Apple-style Segmented View Switcher -->
+          <div class="flex bg-[#2c2c2e] rounded-xl p-0.5 border border-white/[0.04]">
+            <button id="viewGridBtn" class="p-1.5 rounded-lg text-white bg-[#3a3a3c] transition shadow-sm" title="Tampilan Grid">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
               </svg>
             </button>
-            <button id="viewListBtn" class="p-1.5 rounded-lg text-zinc-400 hover:text-white transition" title="List Layout">
+            <button id="viewListBtn" class="p-1.5 rounded-lg text-[#86868b] hover:text-white transition" title="Tampilan List">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
@@ -241,128 +266,117 @@
         </div>
       </div>
 
-      <!-- Loading State -->
+      <!-- Loading State (Apple Spinner) -->
       <div id="loadingState" class="py-24 flex flex-col items-center justify-center text-center">
-        <div class="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-4 animate-spin">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-          </svg>
-        </div>
-        <h3 class="text-sm font-semibold text-zinc-300">Mengambil & Mem-parsing Feed...</h3>
-        <p class="text-xs text-zinc-500 mt-1">Menggunakan koneksi direct / CORS fallback proxy</p>
+        <div class="w-10 h-10 rounded-full border-2 border-white/[0.1] border-t-[#0071e3] animate-spin mb-4"></div>
+        <h3 class="text-sm font-semibold text-[#f5f5f7]">Memuat Artikel...</h3>
+        <p class="text-xs text-[#86868b] mt-1">Mengambil dari sumber melalui direct atau multi-proxy engine</p>
       </div>
 
       <!-- Error State -->
-      <div id="errorState" class="hidden py-16 px-6 text-center rounded-2xl bg-red-950/20 border border-red-500/20 max-w-lg mx-auto">
-        <div class="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mx-auto mb-3">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div id="errorState" class="hidden py-16 px-6 text-center rounded-3xl bg-[#1c1c1e] border border-white/[0.08] max-w-md mx-auto">
+        <div class="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mx-auto mb-3">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
         </div>
-        <h3 class="text-sm font-semibold text-red-300">Gagal Membaca Feed</h3>
-        <p id="errorMessage" class="text-xs text-red-400/80 mt-1 mb-4">Terjadi kesalahan jaringan atau respons bukan feed valid.</p>
-        <button id="retryBtn" class="px-4 py-2 bg-zinc-900 border border-red-500/30 hover:bg-zinc-800 text-xs text-zinc-200 font-medium rounded-xl transition">
+        <h3 class="text-sm font-semibold text-[#f5f5f7]">Gagal Membaca Feed</h3>
+        <p id="errorMessage" class="text-xs text-[#86868b] mt-1 mb-4">Feed tidak dapat dijangkau.</p>
+        <button id="retryBtn" class="px-5 py-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold rounded-full transition shadow-sm">
           Coba Lagi
         </button>
       </div>
 
-      <!-- Empty / No Results State -->
+      <!-- Empty / Filter State -->
       <div id="emptyState" class="hidden py-24 text-center">
-        <div class="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/[0.08] flex items-center justify-center text-zinc-500 mx-auto mb-3">
-          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>
-        </div>
-        <h3 class="text-sm font-semibold text-zinc-300">Tidak ada artikel ditemukan</h3>
-        <p class="text-xs text-zinc-500 mt-1">Coba gunakan kata kunci pencarian yang berbeda.</p>
+        <p class="text-sm text-[#86868b]">Tidak ada artikel yang cocok dengan pencarian.</p>
       </div>
 
-      <!-- Articles Container -->
+      <!-- Articles Grid/List -->
       <div id="articlesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-        <!-- Rendered dynamically -->
+        <!-- Articles rendered dynamically -->
       </div>
     </main>
   </div>
 
-  <!-- Article Reader Modal (Beautiful UI Dialog Pattern) -->
-  <div id="readerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-10 hidden">
-    <!-- Backdrop -->
-    <div id="modalBackdrop" class="fixed inset-0 bg-black/80 backdrop-blur-md transition-opacity"></div>
+  <!-- Apple Sheet / Reader Modal -->
+  <div id="readerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 hidden">
+    <!-- Apple Dark Frosted Backdrop -->
+    <div id="modalBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-2xl transition-opacity"></div>
 
-    <!-- Modal Dialog -->
-    <div class="relative w-full max-w-3xl max-h-[90vh] bg-zinc-950 border border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden flex flex-col z-10 custom-scrollbar animate-in fade-in zoom-in-95 duration-200">
-      <!-- Modal Header -->
-      <div class="p-5 border-b border-white/[0.06] flex items-center justify-between bg-zinc-900/50 backdrop-blur-md">
+    <!-- Apple Modal Dialog -->
+    <div class="relative w-full max-w-2xl max-h-[88vh] bg-[#1c1c1e] border border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden flex flex-col z-10 custom-scrollbar">
+      
+      <!-- Modal Navigation Bar -->
+      <div class="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between bg-[#1c1c1e]/90 backdrop-blur-xl">
         <div class="flex items-center gap-2">
-          <span id="modalSourceBadge" class="text-xs font-mono font-medium px-2.5 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">Sumber</span>
-          <span id="modalDateBadge" class="text-xs text-zinc-400 font-mono">1 jam yang lalu</span>
+          <span id="modalSourceBadge" class="text-[11px] font-semibold text-[#0a84ff] uppercase tracking-wide">Sumber</span>
+          <span class="text-[#6e6e73]">•</span>
+          <span id="modalDateBadge" class="text-xs text-[#86868b]">Waktu</span>
         </div>
         <div class="flex items-center gap-2">
           <a 
             id="modalExternalLink" 
             href="#" 
             target="_blank"
-            class="px-3 py-1.5 rounded-xl bg-zinc-900 border border-white/[0.08] hover:bg-zinc-800 text-xs font-medium text-zinc-300 flex items-center gap-1.5 transition"
+            class="px-3.5 py-1.5 rounded-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-xs font-medium text-[#f5f5f7] flex items-center gap-1.5 transition border border-white/[0.04]"
           >
-            <span>Buka Asli</span>
-            <svg class="w-3.5 h-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <span>Buka Sumber</span>
+            <svg class="w-3.5 h-3.5 text-[#86868b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
             </svg>
           </a>
-          <button id="closeModalBtn" class="p-1.5 rounded-xl bg-zinc-900 border border-white/[0.08] text-zinc-400 hover:text-white transition">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <button id="closeModalBtn" class="w-7 h-7 rounded-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-[#86868b] hover:text-white flex items-center justify-center transition">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Modal Body (Reader Prose) -->
-      <div class="p-6 sm:p-8 overflow-y-auto custom-scrollbar flex-1">
-        <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-4 leading-snug">Judul Artikel</h2>
+      <!-- Modal Content Body -->
+      <div class="px-6 sm:px-8 py-6 overflow-y-auto custom-scrollbar flex-1">
+        <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f5f7] mb-5 leading-snug">Judul Artikel</h2>
         
-        <!-- Media / Cover Image -->
-        <div id="modalImageContainer" class="mb-6 rounded-2xl overflow-hidden bg-zinc-900 border border-white/[0.06] hidden">
-          <img id="modalImage" src="" alt="Cover" class="w-full max-h-96 object-cover">
+        <!-- Cover Image -->
+        <div id="modalImageContainer" class="mb-6 rounded-2xl overflow-hidden bg-black/40 border border-white/[0.06] hidden">
+          <img id="modalImage" src="" alt="" class="w-full max-h-96 object-cover">
         </div>
 
-        <!-- Article Content -->
-        <div id="modalContent" class="text-zinc-300 text-sm sm:text-base leading-relaxed space-y-4">
-          <!-- Text content injected here -->
+        <!-- Prose Content -->
+        <div id="modalContent" class="text-[#d1d1d6] text-sm sm:text-base leading-relaxed space-y-4 font-normal">
+          <!-- Injected text -->
         </div>
       </div>
 
       <!-- Modal Footer -->
-      <div class="p-4 border-t border-white/[0.06] bg-zinc-900/30 flex items-center justify-between text-xs text-zinc-500 font-mono">
-        <span>Tekan <kbd class="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400 border border-zinc-700/50">Esc</kbd> untuk menutup</span>
-        <button id="copyLinkBtn" class="text-indigo-400 hover:text-indigo-300 transition flex items-center gap-1 font-sans">
-          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
-          </svg>
+      <div class="px-6 py-3 border-t border-white/[0.08] bg-[#161618] flex items-center justify-between text-xs text-[#86868b]">
+        <span>Tekan <kbd class="px-1.5 py-0.5 rounded bg-[#2c2c2e] text-[#a1a1a6] text-[10px]">Esc</kbd> untuk menutup</span>
+        <button id="copyLinkBtn" class="text-[#0a84ff] hover:underline flex items-center gap-1 font-medium">
           Salin Tautan
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Application Logic -->
+  <!-- Main Logic -->
   <script>
-    // Presets
+    // Presets with verified working URLs
     const PRESETS = [
       // Indonesia
       { name: 'CNN Indonesia', category: 'id', url: 'https://www.cnnindonesia.com/nasional/rss', desc: 'Berita Nasional Indonesia Terkini' },
-      { name: 'CNBC Indonesia', category: 'id', url: 'https://www.cnbcindonesia.com/news/rss', desc: 'Berita Ekonomi & Bisnis' },
-      { name: 'ANTARA Terkini', category: 'id', url: 'https://www.antaranews.com/rss/terkini.xml', desc: 'Kantor Berita Nasional Indonesia' },
-      { name: 'ANTARA Top News', category: 'id', url: 'https://www.antaranews.com/rss/top-news.xml', desc: 'Berita Utama Terpopuler' },
-      { name: 'Tempo.co', category: 'id', url: 'https://rss.tempo.co/', desc: 'Investigasi & Berita Terkini' },
-      { name: 'Republika', category: 'id', url: 'https://www.republika.co.id/rss', desc: 'Republika Online News' },
-      { name: 'Okezone Terkini', category: 'id', url: 'https://sindikasi.okezone.com/index.php/rss/0/RSS2.0', desc: 'Okezone Sindikasi Terkini' },
+      { name: 'CNBC Indonesia', category: 'id', url: 'https://www.cnbcindonesia.com/news/rss', desc: 'Berita Ekonomi, Pasar & Bisnis' },
       { name: 'Media Indonesia', category: 'id', url: 'https://mediaindonesia.com/feed', desc: 'Harian Media Indonesia' },
-      
+      { name: 'ANTARA Terkini', category: 'id', url: 'https://www.antaranews.com/rss/terkini.xml', desc: 'Kantor Berita Nasional Indonesia' },
+      { name: 'ANTARA Top News', category: 'id', url: 'https://www.antaranews.com/rss/top-news.xml', desc: 'Berita Populer Nasional' },
+      { name: 'Republika', category: 'id', url: 'https://www.republika.co.id/rss', desc: 'Republika Online' },
+      { name: 'Tempo.co', category: 'id', url: 'https://rss.tempo.co/', desc: 'Investigasi & Berita Terkini' },
+      { name: 'Okezone Terkini', category: 'id', url: 'https://sindikasi.okezone.com/index.php/rss/0/RSS2.0', desc: 'Okezone Berita Terkini' },
+
       // Malaysia
-      { name: 'Malay Mail', category: 'my', url: 'https://www.malaymail.com/feed/rss/malaysia', desc: 'Latest Malaysia News & Updates' },
-      { name: 'Malaysiakini', category: 'my', url: 'https://www.malaysiakini.com/rss/en/news.rss', desc: 'Independent News Portal' },
-      { name: 'Free Malaysia Today', category: 'my', url: 'https://www.freemalaysiatoday.com/feeds/rss/headlines', desc: 'FMT Headlines 24/7' },
+      { name: 'Malay Mail', category: 'my', url: 'https://www.malaymail.com/feed/rss/malaysia', desc: 'Leading Independent Malaysian News' },
+      { name: 'Malaysiakini (EN)', category: 'my', url: 'https://www.malaysiakini.com/rss/en/news.rss', desc: 'Independent News Portal Malaysia' },
+      { name: 'Free Malaysia Today', category: 'my', url: 'https://www.freemalaysiatoday.com/feeds/rss/headlines', desc: 'FMT Independent News' },
       { name: 'New Straits Times', category: 'my', url: 'https://www.nst.com.my/feed', desc: 'NST National English Daily' },
       { name: 'Utusan Malaysia', category: 'my', url: 'https://www.utusan.com.my/feed/', desc: 'Akhbar Arus Perdana Malaysia' },
       { name: 'SoyaCincau', category: 'my', url: 'https://soyacincau.com/feed/', desc: 'Tech & Gadgets Malaysia' },
@@ -373,10 +387,17 @@
     let currentFeed = PRESETS[0];
     let allArticles = [];
     let isGridView = true;
+    let activeRegionFilter = 'all';
 
     // DOM Elements
     const idFeedList = document.getElementById('idFeedList');
     const myFeedList = document.getElementById('myFeedList');
+    const idSection = document.getElementById('idSection');
+    const mySection = document.getElementById('mySection');
+    const filterAllBtn = document.getElementById('filterAllBtn');
+    const filterIdBtn = document.getElementById('filterIdBtn');
+    const filterMyBtn = document.getElementById('filterMyBtn');
+
     const articlesGrid = document.getElementById('articlesGrid');
     const loadingState = document.getElementById('loadingState');
     const errorState = document.getElementById('errorState');
@@ -387,12 +408,14 @@
     const activeRegionBadge = document.getElementById('activeRegionBadge');
     const articlesCountBadge = document.getElementById('articlesCountBadge');
     const lastUpdatedBadge = document.getElementById('lastUpdatedBadge');
+
     const searchInput = document.getElementById('searchInput');
     const reloadBtn = document.getElementById('reloadBtn');
     const reloadIcon = document.getElementById('reloadIcon');
     const retryBtn = document.getElementById('retryBtn');
     const customFeedForm = document.getElementById('customFeedForm');
     const customFeedInput = document.getElementById('customFeedInput');
+
     const viewGridBtn = document.getElementById('viewGridBtn');
     const viewListBtn = document.getElementById('viewListBtn');
 
@@ -409,31 +432,33 @@
     const modalExternalLink = document.getElementById('modalExternalLink');
     const copyLinkBtn = document.getElementById('copyLinkBtn');
 
-    // Mobile Drawer
+    // Mobile Elements
     const mobileMenuBtn = document.getElementById('mobileMenuBtn');
     const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
     const sidebar = document.getElementById('sidebar');
     const mobileOverlay = document.getElementById('mobileOverlay');
 
-    // Init Sidebar List
+    // Render Sidebar List
     function renderSidebar() {
       idFeedList.innerHTML = '';
       myFeedList.innerHTML = '';
 
-      PRESETS.forEach((preset, idx) => {
+      PRESETS.forEach(preset => {
         const btn = document.createElement('button');
         const isActive = currentFeed.url === preset.url;
         btn.className = `w-full text-left px-3 py-2 rounded-xl text-xs font-medium transition flex items-center justify-between gap-2 ${
           isActive 
-            ? 'bg-indigo-500/15 text-indigo-300 border border-indigo-500/30' 
-            : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900 border border-transparent'
+            ? 'bg-[#0071e3] text-white font-semibold shadow-sm' 
+            : 'text-[#86868b] hover:text-[#f5f5f7] hover:bg-[#1c1c1e]'
         }`;
         btn.innerHTML = `
           <span class="truncate">${preset.name}</span>
-          ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-indigo-400 shrink-0"></span>' : ''}
+          ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>' : ''}
         `;
         btn.addEventListener('click', () => {
-          selectFeed(preset);
+          currentFeed = preset;
+          renderSidebar();
+          loadFeed(preset.url);
           closeMobileMenu();
         });
 
@@ -445,57 +470,121 @@
       });
     }
 
-    // Select Feed
-    function selectFeed(preset) {
-      currentFeed = preset;
-      renderSidebar();
-      loadFeed(preset.url);
-    }
-
-    // CORS Proxies
-    async function fetchWithCorsFallback(url) {
-      // 1. Direct fetch attempt
+    // Multi-strategy resilient Feed Fetching Engine
+    async function fetchFeedEngine(url) {
+      // Strategy 0: Local feedcheck API (when run via `feedcheck web`)
       try {
-        const resp = await fetch(url, { headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' } });
+        const localApi = `/api/feed?url=${encodeURIComponent(url)}`;
+        const resp = await fetch(localApi, { signal: AbortSignal.timeout(6000) });
         if (resp.ok) {
           const text = await resp.text();
           if (text && (text.includes('<rss') || text.includes('<feed') || text.includes('{"version"'))) {
-            return text;
+            return parseFeedXML(text);
+          }
+        }
+      } catch (e) {}
+
+      // Strategy 1: rss2json API (Solves Cloudflare / CORS for Media Indonesia, Malay Mail, Malaysiakini, CNN, CNBC, etc.)
+      try {
+        const r2j = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
+        const resp = await fetch(r2j, { signal: AbortSignal.timeout(8000) });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.status === 'ok' && data.items && data.items.length > 0) {
+            return parseRss2JsonData(data);
           }
         }
       } catch (e) {
-        // Fall through to proxies
+        // Fall through
       }
 
-      // 2. Fallback to corsproxy.io
+      // Strategy 2: Direct Fetch
       try {
-        const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(url)}`;
-        const resp = await fetch(proxyUrl);
-        if (resp.ok) return await resp.text();
+        const resp = await fetch(url, { 
+          headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' },
+          signal: AbortSignal.timeout(5000)
+        });
+        if (resp.ok) {
+          const text = await resp.text();
+          if (text && (text.includes('<rss') || text.includes('<feed') || text.includes('{"version"'))) {
+            return parseFeedXML(text);
+          }
+        }
       } catch (e) {}
 
-      // 3. Fallback to allorigins.win
+      // Strategy 3: CodeTabs CORS Proxy
+      try {
+        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
+        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+        if (resp.ok) {
+          const text = await resp.text();
+          if (text && (text.includes('<rss') || text.includes('<feed'))) {
+            return parseFeedXML(text);
+          }
+        }
+      } catch (e) {}
+
+      // Strategy 4: AllOrigins CORS Proxy
       try {
         const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const resp = await fetch(proxyUrl);
-        if (resp.ok) return await resp.text();
+        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+        if (resp.ok) {
+          const text = await resp.text();
+          if (text && (text.includes('<rss') || text.includes('<feed'))) {
+            return parseFeedXML(text);
+          }
+        }
       } catch (e) {}
 
-      throw new Error("Tidak dapat mengambil konten feed melalui direct maupun CORS proxy.");
+      throw new Error("Tidak dapat mengambil konten feed melalui direct maupun proxy fallback.");
     }
 
-    // Parse RSS / Atom XML
+    // Parser for rss2json response
+    function parseRss2JsonData(data) {
+      const title = data.feed?.title || currentFeed.name;
+      const desc = data.feed?.description || currentFeed.desc;
+      const items = (data.items || []).map(item => {
+        let image = item.thumbnail || item.enclosure?.link || '';
+        
+        // Extract <img> from description if not present
+        if (!image && item.description) {
+          const imgMatch = item.description.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch && imgMatch[1]) image = imgMatch[1];
+        }
+        if (!image && item.content) {
+          const imgMatch = item.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch && imgMatch[1]) image = imgMatch[1];
+        }
+
+        const tmp = document.createElement('div');
+        tmp.innerHTML = item.description || item.content || '';
+        const cleanExcerpt = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
+
+        return {
+          title: item.title || 'Tanpa Judul',
+          link: item.link || '#',
+          pubDate: item.pubDate || '',
+          description: cleanExcerpt,
+          fullContent: item.content || item.description || '',
+          image: image,
+          source: title
+        };
+      });
+
+      return { title, desc, items };
+    }
+
+    // Parser for raw RSS / Atom XML
     function parseFeedXML(xmlText) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(xmlText, 'text/xml');
 
       if (doc.querySelector('parsererror')) {
-        // Try parsing as JSON Feed
         try {
           const json = JSON.parse(xmlText);
           return parseJSONFeed(json);
         } catch (e) {
-          throw new Error("Format feed tidak dapat diparse sebagai XML maupun JSON Feed.");
+          throw new Error("Format feed tidak dapat diparse sebagai XML.");
         }
       }
 
@@ -518,46 +607,33 @@
         }
 
         const dateStr = item.querySelector('pubDate, published, updated, dc\\:date')?.textContent?.trim() || '';
-        const description = item.querySelector('description, summary, content')?.textContent?.trim() || '';
+        const rawContent = item.querySelector('content, description, summary')?.textContent?.trim() || '';
 
-        // Extract thumbnail/cover image
+        // Image extraction
         let image = '';
-        const mediaContent = item.querySelector('media\\:content, content[url]');
-        if (mediaContent && mediaContent.getAttribute('url')) {
-          image = mediaContent.getAttribute('url');
+        const media = item.querySelector('media\\:content, content[url], media\\:thumbnail');
+        if (media && media.getAttribute('url')) {
+          image = media.getAttribute('url');
         }
         if (!image) {
-          const enclosure = item.querySelector('enclosure[type^="image"]');
-          if (enclosure && enclosure.getAttribute('url')) {
-            image = enclosure.getAttribute('url');
-          }
+          const enc = item.querySelector('enclosure[type^="image"]');
+          if (enc && enc.getAttribute('url')) image = enc.getAttribute('url');
         }
         if (!image) {
-          const mediaThumb = item.querySelector('media\\:thumbnail');
-          if (mediaThumb && mediaThumb.getAttribute('url')) {
-            image = mediaThumb.getAttribute('url');
-          }
-        }
-        if (!image) {
-          // Look for <img> tag inside description or content
-          const imgMatch = description.match(/<img[^>]+src=["']([^"']+)["']/i);
-          if (imgMatch && imgMatch[1]) {
-            image = imgMatch[1];
-          }
+          const imgMatch = rawContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch && imgMatch[1]) image = imgMatch[1];
         }
 
-        // Clean excerpt text
-        const tmpDiv = document.createElement('div');
-        tmpDiv.innerHTML = description;
-        const cleanText = tmpDiv.textContent || tmpDiv.innerText || '';
+        const tmp = document.createElement('div');
+        tmp.innerHTML = rawContent;
+        const cleanText = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
 
         items.push({
           title: itemTitle,
           link: link,
           pubDate: dateStr,
-          timestamp: dateStr ? new Date(dateStr).getTime() : 0,
-          description: cleanText.slice(0, 250).trim(),
-          fullContent: description,
+          description: cleanText,
+          fullContent: rawContent,
           image: image,
           source: title
         });
@@ -573,7 +649,6 @@
         title: item.title || 'Tanpa Judul',
         link: item.url || '#',
         pubDate: item.date_published || item.date_modified || '',
-        timestamp: (item.date_published || item.date_modified) ? new Date(item.date_published || item.date_modified).getTime() : 0,
         description: (item.content_text || item.summary || '').slice(0, 250).trim(),
         fullContent: item.content_html || item.content_text || item.summary || '',
         image: item.image || item.banner_image || '',
@@ -582,26 +657,25 @@
       return { title, desc, items };
     }
 
-    // Relative Time Formatter
+    // Relative Time
     function formatRelative(dateStr) {
-      if (!dateStr) return '-';
+      if (!dateStr) return '';
       const date = new Date(dateStr);
       if (isNaN(date.getTime())) return dateStr;
       
       const diffMs = Date.now() - date.getTime();
-      const diffSec = Math.floor(diffMs / 1000);
-      const diffMin = Math.floor(diffSec / 60);
+      const diffMin = Math.floor(diffMs / 60000);
       const diffHour = Math.floor(diffMin / 60);
       const diffDay = Math.floor(diffHour / 24);
 
-      if (diffSec < 60) return 'Baru saja';
+      if (diffMin < 1) return 'Baru saja';
       if (diffMin < 60) return `${diffMin}m lalu`;
       if (diffHour < 24) return `${diffHour}h lalu`;
       if (diffDay < 30) return `${diffDay}d lalu`;
       return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
     }
 
-    // Render Article Cards
+    // Render Articles (Apple Cards)
     function renderArticles(articles) {
       articlesGrid.innerHTML = '';
       
@@ -614,46 +688,48 @@
       emptyState.classList.add('hidden');
       articlesGrid.classList.remove('hidden');
 
-      articles.forEach((article, index) => {
+      articles.forEach(article => {
         const card = document.createElement('article');
         
         if (isGridView) {
-          card.className = "group relative p-5 rounded-2xl bg-zinc-900/50 border border-white/[0.06] hover:border-zinc-700/80 hover:bg-zinc-900/80 backdrop-blur-sm transition-all duration-300 flex flex-col justify-between hover:-translate-y-1 hover:shadow-xl hover:shadow-black/50 overflow-hidden";
+          card.className = "group relative p-4 sm:p-5 rounded-2xl bg-[#1c1c1e] border border-white/[0.06] hover:border-white/[0.14] hover:bg-[#222225] transition-all duration-200 flex flex-col justify-between cursor-pointer";
         } else {
-          card.className = "group relative p-4 sm:p-5 rounded-2xl bg-zinc-900/50 border border-white/[0.06] hover:border-zinc-700/80 hover:bg-zinc-900/80 backdrop-blur-sm transition-all duration-300 flex flex-col sm:flex-row gap-4 justify-between hover:shadow-xl hover:shadow-black/50 overflow-hidden";
+          card.className = "group relative p-4 sm:p-5 rounded-2xl bg-[#1c1c1e] border border-white/[0.06] hover:border-white/[0.14] hover:bg-[#222225] transition-all duration-200 flex flex-col sm:flex-row gap-4 justify-between cursor-pointer";
         }
 
         const imageHTML = article.image 
-          ? `<div class="${isGridView ? 'w-full h-44 mb-4' : 'w-full sm:w-48 sm:h-32 mb-2 sm:mb-0'} rounded-xl overflow-hidden bg-zinc-950 shrink-0 border border-white/[0.04]">
-              <img src="${article.image}" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.parentElement.style.display='none'">
+          ? `<div class="${isGridView ? 'w-full h-44 mb-3.5' : 'w-full sm:w-48 sm:h-32 mb-2 sm:mb-0'} rounded-xl overflow-hidden bg-black shrink-0 border border-white/[0.04]">
+              <img src="${article.image}" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
              </div>`
           : '';
+
+        const relTime = formatRelative(article.pubDate);
 
         card.innerHTML = `
           ${imageHTML}
           <div class="flex-1 flex flex-col justify-between">
             <div>
-              <div class="flex items-center justify-between gap-2 mb-2">
-                <span class="text-[11px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md border border-indigo-500/20 truncate max-w-[140px]">${article.source}</span>
-                <span class="text-[11px] font-mono text-zinc-500 shrink-0">${formatRelative(article.pubDate)}</span>
+              <div class="flex items-center gap-1.5 mb-2 text-[11px] text-[#86868b]">
+                <span class="font-semibold text-[#0a84ff] uppercase tracking-wide truncate max-w-[150px]">${article.source}</span>
+                ${relTime ? `<span>•</span><span>${relTime}</span>` : ''}
               </div>
-              <h3 class="text-sm sm:text-base font-semibold text-white group-hover:text-indigo-300 transition-colors line-clamp-2 leading-snug mb-2">
+              <h3 class="text-[15px] font-semibold text-[#f5f5f7] group-hover:text-white transition-colors line-clamp-2 leading-snug mb-2">
                 ${article.title}
               </h3>
-              <p class="text-xs text-zinc-400 line-clamp-3 leading-relaxed mb-4">
-                ${article.description || 'Klik untuk membaca detail artikel...'}
+              <p class="text-xs text-[#86868b] line-clamp-3 leading-relaxed mb-4">
+                ${article.description || 'Klik untuk membaca artikel lengkap.'}
               </p>
             </div>
 
             <div class="pt-3 border-t border-white/[0.06] flex items-center justify-between">
-              <button class="open-reader-btn text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center gap-1 transition">
+              <span class="text-xs font-medium text-[#0a84ff] flex items-center gap-1">
                 <span>Baca Ringkas</span>
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
-              </button>
-              <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-300 text-xs transition flex items-center gap-1 font-mono">
-                <span>Sumber</span>
+              </span>
+              <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-[#86868b] hover:text-[#f5f5f7] text-xs transition flex items-center gap-1 font-mono">
+                <span>Asli</span>
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                 </svg>
@@ -661,12 +737,6 @@
             </div>
           </div>
         `;
-
-        // Card Click opens reader
-        card.querySelector('.open-reader-btn').addEventListener('click', (e) => {
-          e.stopPropagation();
-          openReaderModal(article);
-        });
 
         card.addEventListener('click', (e) => {
           if (e.target.tagName !== 'A' && !e.target.closest('a')) {
@@ -678,7 +748,7 @@
       });
     }
 
-    // Open Reader Modal
+    // Modal Sheet
     function openReaderModal(article) {
       modalTitle.textContent = article.title;
       modalSourceBadge.textContent = article.source;
@@ -692,14 +762,12 @@
         modalImageContainer.classList.add('hidden');
       }
 
-      // Populate content
       modalContent.innerHTML = article.fullContent || `<p>${article.description}</p>`;
       
-      // Clean target links inside modal
       modalContent.querySelectorAll('a').forEach(a => {
         a.setAttribute('target', '_blank');
         a.setAttribute('rel', 'noopener noreferrer');
-        a.className = 'text-indigo-400 hover:underline';
+        a.className = 'text-[#0a84ff] hover:underline';
       });
 
       readerModal.classList.remove('hidden');
@@ -711,7 +779,7 @@
       document.body.style.overflow = '';
     }
 
-    // Load & Parse Feed Action
+    // Load Feed
     async function loadFeed(feedUrl) {
       loadingState.classList.remove('hidden');
       errorState.classList.add('hidden');
@@ -722,12 +790,10 @@
 
       activeFeedTitle.textContent = currentFeed.name;
       activeFeedDesc.textContent = currentFeed.url;
-      activeRegionBadge.textContent = currentFeed.category === 'id' ? '🇮🇩 ID' : (currentFeed.category === 'my' ? '🇲🇾 MY' : '🌐 WEB');
+      activeRegionBadge.textContent = currentFeed.category === 'id' ? '🇮🇩 Indonesia' : (currentFeed.category === 'my' ? '🇲🇾 Malaysia' : '🌐 Custom Feed');
 
       try {
-        const rawText = await fetchWithCorsFallback(feedUrl);
-        const parsed = parseFeedXML(rawText);
-
+        const parsed = await fetchFeedEngine(feedUrl);
         activeFeedTitle.textContent = parsed.title || currentFeed.name;
         activeFeedDesc.textContent = parsed.desc || currentFeed.desc;
         allArticles = parsed.items;
@@ -746,7 +812,7 @@
       }
     }
 
-    // Client-side search / filter
+    // Filter Articles
     function filterArticles() {
       const query = searchInput.value.toLowerCase().trim();
       if (!query) {
@@ -764,16 +830,38 @@
       articlesCountBadge.textContent = `${filtered.length} dari ${allArticles.length}`;
     }
 
+    // Segmented Filter Handlers
+    function setRegionFilter(region) {
+      activeRegionFilter = region;
+      
+      [filterAllBtn, filterIdBtn, filterMyBtn].forEach(b => {
+        b.className = "flex-1 py-1 rounded-lg text-xs font-medium text-[#86868b] hover:text-white transition";
+      });
+
+      if (region === 'all') {
+        filterAllBtn.className = "flex-1 py-1 rounded-lg text-xs font-semibold text-white bg-[#2c2c2e] shadow-sm transition";
+        idSection.classList.remove('hidden');
+        mySection.classList.remove('hidden');
+      } else if (region === 'id') {
+        filterIdBtn.className = "flex-1 py-1 rounded-lg text-xs font-semibold text-white bg-[#2c2c2e] shadow-sm transition";
+        idSection.classList.remove('hidden');
+        mySection.classList.add('hidden');
+      } else {
+        filterMyBtn.className = "flex-1 py-1 rounded-lg text-xs font-semibold text-white bg-[#2c2c2e] shadow-sm transition";
+        idSection.classList.add('hidden');
+        mySection.classList.remove('hidden');
+      }
+    }
+
+    filterAllBtn.addEventListener('click', () => setRegionFilter('all'));
+    filterIdBtn.addEventListener('click', () => setRegionFilter('id'));
+    filterMyBtn.addEventListener('click', () => setRegionFilter('my'));
+
     // Event Listeners
     searchInput.addEventListener('input', filterArticles);
 
-    reloadBtn.addEventListener('click', () => {
-      loadFeed(currentFeed.url);
-    });
-
-    retryBtn.addEventListener('click', () => {
-      loadFeed(currentFeed.url);
-    });
+    reloadBtn.addEventListener('click', () => loadFeed(currentFeed.url));
+    retryBtn.addEventListener('click', () => loadFeed(currentFeed.url));
 
     customFeedForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -802,25 +890,25 @@
     // Layout toggles
     viewGridBtn.addEventListener('click', () => {
       isGridView = true;
-      viewGridBtn.classList.add('bg-zinc-800', 'text-white');
-      viewGridBtn.classList.remove('text-zinc-400');
-      viewListBtn.classList.remove('bg-zinc-800', 'text-white');
-      viewListBtn.classList.add('text-zinc-400');
+      viewGridBtn.classList.add('bg-[#3a3a3c]', 'text-white');
+      viewGridBtn.classList.remove('text-[#86868b]');
+      viewListBtn.classList.remove('bg-[#3a3a3c]', 'text-white');
+      viewListBtn.classList.add('text-[#86868b]');
       articlesGrid.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5";
       renderArticles(allArticles);
     });
 
     viewListBtn.addEventListener('click', () => {
       isGridView = false;
-      viewListBtn.classList.add('bg-zinc-800', 'text-white');
-      viewListBtn.classList.remove('text-zinc-400');
-      viewGridBtn.classList.remove('bg-zinc-800', 'text-white');
-      viewGridBtn.classList.add('text-zinc-400');
-      articlesGrid.className = "flex flex-col gap-4";
+      viewListBtn.classList.add('bg-[#3a3a3c]', 'text-white');
+      viewListBtn.classList.remove('text-[#86868b]');
+      viewGridBtn.classList.remove('bg-[#3a3a3c]', 'text-white');
+      viewGridBtn.classList.add('text-[#86868b]');
+      articlesGrid.className = "flex flex-col gap-3.5";
       renderArticles(allArticles);
     });
 
-    // Modal Events
+    // Modal
     closeModalBtn.addEventListener('click', closeReaderModal);
     modalBackdrop.addEventListener('click', closeReaderModal);
 
@@ -828,8 +916,8 @@
       if (modalExternalLink.href) {
         navigator.clipboard.writeText(modalExternalLink.href);
         const originalText = copyLinkBtn.innerHTML;
-        copyLinkBtn.innerHTML = `<span>Tautan Disalin!</span>`;
-        setTimeout(() => copyLinkBtn.innerHTML = originalText, 2000);
+        copyLinkBtn.innerHTML = `<span>Disalin!</span>`;
+        setTimeout(() => copyLinkBtn.innerHTML = originalText, 1800);
       }
     });
 

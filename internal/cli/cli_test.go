@@ -33,6 +33,13 @@ func TestCLI_Help(t *testing.T) {
 		t.Errorf("stdout does not contain usage: %s", stdout.String())
 	}
 }
+func TestCLI_Web_Help(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"web", "--help"}, &stdout, &stderr)
+	if code != ExitSuccess {
+		t.Errorf("code = %d, want %d", code, ExitSuccess)
+	}
+}
 
 func TestCLI_NoArgs(t *testing.T) {
 	var stdout, stderr bytes.Buffer
