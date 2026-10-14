@@ -1,0 +1,9 @@
+# Indonesian News Feeds
+https://www.cnnindonesia.com/nasional/rss
+https://www.cnbcindonesia.com/news/rss
+https://www.antaranews.com/rss/terkini.xml
+https://rss.tempo.co/
+https://www.republika.co.id/rss
+
+# JSON Feed
+https://www.jsonfeed.org/feed.json

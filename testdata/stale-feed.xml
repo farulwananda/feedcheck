@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Stale Feed</title>
+    <link>https://example.com/stale</link>
+    <description>Feed whose items are very old</description>
+    <item>
+      <title>Old Item 1</title>
+      <link>https://example.com/stale/1</link>
+      <pubDate>Wed, 01 Jan 2020 10:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

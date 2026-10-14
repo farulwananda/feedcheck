@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Sample Atom Feed</title>
+  <link href="https://example.org/"/>
+  <updated>2026-10-14T12:00:00Z</updated>
+  <id>urn:uuid:60a76c80-d39b-11d9-b93C-0003939e0af6</id>
+  <entry>
+    <title>Atom Entry 1</title>
+    <link href="https://example.org/entry1"/>
+    <id>urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a</id>
+    <updated>2026-10-14T10:00:00Z</updated>
+    <published>2026-10-14T09:30:00Z</published>
+    <summary>Sample atom entry summary</summary>
+  </entry>
+  <entry>
+    <title>Atom Entry 2</title>
+    <link href="https://example.org/entry2"/>
+    <id>urn:uuid:2225c695-cfb8-4ebb-aaaa-80da344efa6b</id>
+    <updated>2026-10-14T11:45:00Z</updated>
+    <published>2026-10-14T11:00:00Z</published>
+    <summary>Sample atom entry 2 summary</summary>
+  </entry>
+</feed>

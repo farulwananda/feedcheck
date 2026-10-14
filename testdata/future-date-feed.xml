@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Future Date Feed</title>
+    <link>https://example.com/future</link>
+    <description>Feed with a future dated item and a normal item</description>
+    <item>
+      <title>Normal Item</title>
+      <link>https://example.com/future/1</link>
+      <pubDate>Wed, 14 Oct 2026 10:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Far Future Item</title>
+      <link>https://example.com/future/2</link>
+      <pubDate>Mon, 01 Jan 2035 00:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>

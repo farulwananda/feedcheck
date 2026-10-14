@@ -1,0 +1,23 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+/feedcheck
+
+# Test artifacts
+*.test
+*.out
+coverage.html
+
+# Output files from scans
+report.json
+*.tmp
+
+# OS / Editor files
+.DS_Store
+.idea/
+.vscode/

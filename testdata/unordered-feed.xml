@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Unordered Dates Feed</title>
+    <link>https://example.com/unordered</link>
+    <description>Items out of chronological order</description>
+    <item>
+      <title>Older Item First</title>
+      <link>https://example.com/unordered/1</link>
+      <pubDate>Mon, 12 Oct 2026 08:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Newer Item Second</title>
+      <link>https://example.com/unordered/2</link>
+      <pubDate>Wed, 14 Oct 2026 15:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Middle Item Third</title>
+      <link>https://example.com/unordered/3</link>
+      <pubDate>Tue, 13 Oct 2026 12:00:00 GMT</pubDate>
+    </item>
+  </channel>
+</rss>
