@@ -34,7 +34,7 @@ Usage:
 Commands:
   check   Inspect the health of a single feed URL
   scan    Inspect multiple feed URLs from an input file
-  web     Launch the modern Apple News-style Web RSS Reader
+  web     Launch the Web RSS Reader interface
 
 Flags (check):
   --format string        Output format: 'table' or 'json' (default "table")
@@ -320,7 +320,7 @@ func runWeb(args []string, stdout, stderr io.Writer) int {
 	}
 
 	addr := fmt.Sprintf("http://127.0.0.1:%d", *port)
-	fmt.Fprintf(stdout, "feedcheck: Apple News RSS Reader running at %s\nPress Ctrl+C to stop.\n", addr)
+	fmt.Fprintf(stdout, "feedcheck: Web RSS Reader running at %s\nPress Ctrl+C to stop.\n", addr)
 
 	if !*noOpen {
 		go openBrowser(addr)

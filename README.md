@@ -104,22 +104,22 @@ Export results to a JSON file for pipeline automation:
 feedcheck scan --file feeds.txt --format json --output report.json
 ```
 
-### 3. Apple-Style Web RSS Reader
+### 3. Web RSS Reader
 
-Repositori ini menyertakan antarmuka **Web RSS Reader** bergaya Apple Design (SF typography, pure black background, Apple System Blue accent, frosted glass cards, reader modal view, dan segmented controls).
+This repository includes a standalone **Web RSS Reader** interface featuring Apple design principles (San Francisco typography, dark aesthetic, Apple System Blue accents, frosted glass cards, reader modal view, and segmented controls).
 
-#### Opsi 1: Lewat CLI (Direkomendasikan — Bebas Kendala CORS)
+#### Option 1: Via CLI (Recommended — Zero CORS Issues)
 
-Menjalankan local server dan proxy terintegrasi Go, menjamin seluruh feed (Media Indonesia, Malay Mail, Malaysiakini, CNN, Tempo, dsb.) termuat seketika tanpa diblokir oleh CORS browser atau Cloudflare:
+Launch the built-in local web server and Go proxy. This ensures all feeds (Media Indonesia, Malay Mail, Malaysiakini, CNN, Tempo, etc.) load reliably without being blocked by browser CORS policies or Cloudflare challenges:
 
 ```bash
 feedcheck web
 ```
-*Browser Anda akan terbuka otomatis ke `http://localhost:8080`.*
+*Your default browser will automatically open `http://localhost:8080`.*
 
-#### Opsi 2: Buka Berkas Mandiri (Standalone)
+#### Option 2: Open Standalone File
 
-Atau buka langsung berkas `web/index.html` di browser (menggunakan multi-tier fallback engine: `rss2json`, direct, dan CORS proxies):
+Alternatively, open `web/index.html` directly in your browser (powered by an in-browser multi-tier fallback engine using `feed2json`, `rss2json`, and direct fetch):
 
 ```bash
 # macOS

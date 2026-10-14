@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Feedcheck — Apple News Style RSS Reader</title>
+  <title>Feedcheck — RSS & Atom Reader</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -52,7 +52,7 @@
       -webkit-backdrop-filter: blur(25px);
     }
     .apple-nav {
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(30px);
       -webkit-backdrop-filter: blur(30px);
     }
@@ -86,20 +86,20 @@
 </head>
 <body class="min-h-screen flex flex-col antialiased selection:bg-[#0071e3]/30 selection:text-white">
 
-  <!-- Apple Minimal Navigation Bar -->
+  <!-- Apple Navigation Bar -->
   <header class="sticky top-0 z-40 apple-nav border-b border-white/[0.08] transition-colors">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
       
       <!-- Brand & Mobile Toggle -->
       <div class="flex items-center gap-3">
-        <button id="mobileMenuBtn" class="lg:hidden p-1.5 rounded-lg bg-[#1c1c1e] text-[#86868b] hover:text-[#f5f5f7] border border-white/[0.06] transition">
+        <button id="mobileMenuBtn" aria-label="Toggle navigation menu" class="lg:hidden p-1.5 rounded-lg bg-[#1c1c1e] text-[#86868b] hover:text-[#f5f5f7] border border-white/[0.06] transition">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M4 6h16M4 12h16M4 18h16"/>
           </svg>
         </button>
 
         <div class="flex items-center gap-2">
-          <!-- Apple-style RSS Icon -->
+          <!-- RSS Icon -->
           <div class="w-8 h-8 rounded-xl bg-gradient-to-b from-[#0a84ff] to-[#0071e3] p-[1px] shadow-sm shadow-[#0071e3]/20 flex items-center justify-center">
             <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor">
               <circle cx="6.18" cy="17.82" r="2.18"/>
@@ -107,11 +107,11 @@
             </svg>
           </div>
           <span class="font-semibold text-[15px] tracking-tight text-[#f5f5f7]">Feedcheck</span>
-          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/[0.08] text-[#86868b] border border-white/[0.04]">News</span>
+          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-white/[0.08] text-[#86868b] border border-white/[0.04]">Reader</span>
         </div>
       </div>
 
-      <!-- Apple-style Search Pill -->
+      <!-- Search Input -->
       <div class="flex-1 max-w-sm relative hidden sm:block">
         <div class="relative">
           <svg class="w-3.5 h-3.5 text-[#86868b] absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -120,7 +120,7 @@
           <input 
             type="text" 
             id="searchInput"
-            placeholder="Cari berita... (⌘K)"
+            placeholder="Search articles... (⌘K)"
             class="w-full bg-[#1c1c1e]/90 border border-white/[0.08] rounded-full pl-9 pr-10 py-1.5 text-xs text-[#f5f5f7] placeholder-[#86868b] focus:outline-none focus:border-[#0a84ff] focus:ring-1 focus:ring-[#0a84ff] transition"
           >
           <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
@@ -133,7 +133,7 @@
       <div class="flex items-center gap-2">
         <button 
           id="reloadBtn" 
-          title="Muat Ulang Feed (R)"
+          title="Reload Feed (R)"
           class="px-3 py-1.5 rounded-full bg-[#1c1c1e] hover:bg-[#2c2c2e] border border-white/[0.08] text-[#f5f5f7] text-xs font-medium flex items-center gap-1.5 transition active:scale-95"
         >
           <svg id="reloadIcon" class="w-3.5 h-3.5 text-[#86868b] transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -159,20 +159,20 @@
   <!-- Main Container -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex gap-8">
     
-    <!-- Apple macOS-style Sidebar -->
+    <!-- Sidebar -->
     <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-50 w-72 bg-[#121214] lg:bg-transparent p-5 lg:p-0 border-r lg:border-r-0 border-white/[0.08] transform -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out flex flex-col gap-5 custom-scrollbar overflow-y-auto">
       
       <!-- Mobile Close Button -->
       <div class="flex lg:hidden items-center justify-between pb-3 border-b border-white/[0.08]">
-        <span class="font-semibold text-sm text-[#f5f5f7]">Daftar Feed</span>
-        <button id="closeMobileMenuBtn" class="p-1 rounded-lg text-[#86868b] hover:text-[#f5f5f7]">
+        <span class="font-semibold text-sm text-[#f5f5f7]">Feeds</span>
+        <button id="closeMobileMenuBtn" aria-label="Close menu" class="p-1 rounded-lg text-[#86868b] hover:text-[#f5f5f7]">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
 
-      <!-- Custom Feed Input (Apple Grouped Style) -->
+      <!-- Custom Feed Input -->
       <div class="p-3.5 rounded-2xl bg-[#1c1c1e] border border-white/[0.06] shadow-sm">
         <label class="block text-[11px] font-semibold text-[#86868b] mb-2 uppercase tracking-wider">Custom Feed URL</label>
         <form id="customFeedForm" class="flex flex-col gap-2">
@@ -187,36 +187,36 @@
             type="submit" 
             class="w-full py-1.5 bg-[#0071e3] hover:bg-[#0077ed] text-white rounded-xl text-xs font-medium transition active:scale-98"
           >
-            Buka Feed
+            Load Feed
           </button>
         </form>
       </div>
 
-      <!-- Apple Segmented Control for Region Filter -->
+      <!-- Segmented Region Filter -->
       <div class="flex bg-[#1c1c1e] p-1 rounded-xl border border-white/[0.06]">
-        <button id="filterAllBtn" class="flex-1 py-1 rounded-lg text-xs font-medium text-white bg-[#2c2c2e] shadow-sm transition">Semua</button>
+        <button id="filterAllBtn" class="flex-1 py-1 rounded-lg text-xs font-semibold text-white bg-[#2c2c2e] shadow-sm transition">All</button>
         <button id="filterIdBtn" class="flex-1 py-1 rounded-lg text-xs font-medium text-[#86868b] hover:text-white transition">🇮🇩 ID</button>
         <button id="filterMyBtn" class="flex-1 py-1 rounded-lg text-xs font-medium text-[#86868b] hover:text-white transition">🇲🇾 MY</button>
       </div>
 
-      <!-- Feed List Sections -->
+      <!-- Feed Sections -->
       <div class="flex flex-col gap-4">
-        <!-- Indonesia Section -->
+        <!-- Indonesia -->
         <div id="idSection">
           <div class="flex items-center justify-between mb-1.5 px-2">
             <span class="text-[11px] font-semibold tracking-wider text-[#86868b] uppercase">Indonesia</span>
-            <span class="text-[10px] text-[#6e6e73]">8 Feed</span>
+            <span class="text-[10px] text-[#6e6e73]">8 Feeds</span>
           </div>
           <div class="flex flex-col gap-0.5" id="idFeedList">
             <!-- Rendered by JS -->
           </div>
         </div>
 
-        <!-- Malaysia Section -->
+        <!-- Malaysia -->
         <div id="mySection">
           <div class="flex items-center justify-between mb-1.5 px-2">
             <span class="text-[11px] font-semibold tracking-wider text-[#86868b] uppercase">Malaysia</span>
-            <span class="text-[10px] text-[#6e6e73]">7 Feed</span>
+            <span class="text-[10px] text-[#6e6e73]">7 Feeds</span>
           </div>
           <div class="flex flex-col gap-0.5" id="myFeedList">
             <!-- Rendered by JS -->
@@ -231,33 +231,33 @@
     <!-- Main Content Area -->
     <main class="flex-1 min-w-0">
       
-      <!-- Apple Hero / Header Banner -->
+      <!-- Banner -->
       <div class="mb-6 p-5 sm:p-6 rounded-3xl bg-[#1c1c1e] border border-white/[0.08] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2 mb-1">
             <span id="activeRegionBadge" class="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#0a84ff]/15 text-[#0a84ff] border border-[#0a84ff]/30">🇮🇩 Indonesia</span>
-            <h1 id="activeFeedTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f5f7] truncate max-w-md sm:max-w-lg">Memuat Feed...</h1>
+            <h1 id="activeFeedTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f5f7] truncate max-w-md sm:max-w-lg">Loading Feed...</h1>
           </div>
-          <p id="activeFeedDesc" class="text-xs text-[#86868b] truncate max-w-xl">Mengambil konten terbaru dari sumber resmi</p>
+          <p id="activeFeedDesc" class="text-xs text-[#86868b] truncate max-w-xl">Fetching content from source</p>
         </div>
 
-        <!-- Right stats & layout switcher -->
+        <!-- Stats & View Switcher -->
         <div class="flex items-center gap-4">
           <div class="text-right">
-            <div id="articlesCountBadge" class="text-xs font-semibold text-[#f5f5f7]">0 artikel</div>
-            <div id="lastUpdatedBadge" class="text-[11px] text-[#86868b]">Diperbarui: -</div>
+            <div id="articlesCountBadge" class="text-xs font-semibold text-[#f5f5f7]">0 articles</div>
+            <div id="lastUpdatedBadge" class="text-[11px] text-[#86868b]">Updated: -</div>
           </div>
 
           <div class="w-px h-8 bg-white/[0.08] hidden sm:block"></div>
 
-          <!-- Apple-style Segmented View Switcher -->
+          <!-- View Switcher -->
           <div class="flex bg-[#2c2c2e] rounded-xl p-0.5 border border-white/[0.04]">
-            <button id="viewGridBtn" class="p-1.5 rounded-lg text-white bg-[#3a3a3c] transition shadow-sm" title="Tampilan Grid">
+            <button id="viewGridBtn" aria-label="Grid view" class="p-1.5 rounded-lg text-white bg-[#3a3a3c] transition shadow-sm" title="Grid View">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
               </svg>
             </button>
-            <button id="viewListBtn" class="p-1.5 rounded-lg text-[#86868b] hover:text-white transition" title="Tampilan List">
+            <button id="viewListBtn" aria-label="List view" class="p-1.5 rounded-lg text-[#86868b] hover:text-white transition" title="List View">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
               </svg>
@@ -266,11 +266,11 @@
         </div>
       </div>
 
-      <!-- Loading State (Apple Spinner) -->
+      <!-- Loading State -->
       <div id="loadingState" class="py-24 flex flex-col items-center justify-center text-center">
         <div class="w-10 h-10 rounded-full border-2 border-white/[0.1] border-t-[#0071e3] animate-spin mb-4"></div>
-        <h3 class="text-sm font-semibold text-[#f5f5f7]">Memuat Artikel...</h3>
-        <p class="text-xs text-[#86868b] mt-1">Mengambil dari sumber melalui direct atau multi-proxy engine</p>
+        <h3 class="text-sm font-semibold text-[#f5f5f7]">Loading Articles...</h3>
+        <p class="text-xs text-[#86868b] mt-1">Retrieving latest stories from feed source</p>
       </div>
 
       <!-- Error State -->
@@ -280,16 +280,16 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
         </div>
-        <h3 class="text-sm font-semibold text-[#f5f5f7]">Gagal Membaca Feed</h3>
-        <p id="errorMessage" class="text-xs text-[#86868b] mt-1 mb-4">Feed tidak dapat dijangkau.</p>
+        <h3 class="text-sm font-semibold text-[#f5f5f7]">Unable to Load Feed</h3>
+        <p id="errorMessage" class="text-xs text-[#86868b] mt-1 mb-4">The feed could not be reached. Check your network or the feed URL.</p>
         <button id="retryBtn" class="px-5 py-2 bg-[#0071e3] hover:bg-[#0077ed] text-white text-xs font-semibold rounded-full transition shadow-sm">
-          Coba Lagi
+          Retry
         </button>
       </div>
 
       <!-- Empty / Filter State -->
       <div id="emptyState" class="hidden py-24 text-center">
-        <p class="text-sm text-[#86868b]">Tidak ada artikel yang cocok dengan pencarian.</p>
+        <p class="text-sm text-[#86868b]">No articles match your search criteria.</p>
       </div>
 
       <!-- Articles Grid/List -->
@@ -299,20 +299,20 @@
     </main>
   </div>
 
-  <!-- Apple Sheet / Reader Modal -->
+  <!-- Reader Modal Sheet -->
   <div id="readerModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 hidden">
-    <!-- Apple Dark Frosted Backdrop -->
+    <!-- Frosted Backdrop -->
     <div id="modalBackdrop" class="fixed inset-0 bg-black/70 backdrop-blur-2xl transition-opacity"></div>
 
-    <!-- Apple Modal Dialog -->
+    <!-- Modal Dialog -->
     <div class="relative w-full max-w-2xl max-h-[88vh] bg-[#1c1c1e] border border-white/[0.1] rounded-3xl shadow-2xl overflow-hidden flex flex-col z-10 custom-scrollbar">
       
       <!-- Modal Navigation Bar -->
       <div class="px-6 py-4 border-b border-white/[0.08] flex items-center justify-between bg-[#1c1c1e]/90 backdrop-blur-xl">
         <div class="flex items-center gap-2">
-          <span id="modalSourceBadge" class="text-[11px] font-semibold text-[#0a84ff] uppercase tracking-wide">Sumber</span>
+          <span id="modalSourceBadge" class="text-[11px] font-semibold text-[#0a84ff] uppercase tracking-wide">Source</span>
           <span class="text-[#6e6e73]">•</span>
-          <span id="modalDateBadge" class="text-xs text-[#86868b]">Waktu</span>
+          <span id="modalDateBadge" class="text-xs text-[#86868b]">Time</span>
         </div>
         <div class="flex items-center gap-2">
           <a 
@@ -321,12 +321,12 @@
             target="_blank"
             class="px-3.5 py-1.5 rounded-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-xs font-medium text-[#f5f5f7] flex items-center gap-1.5 transition border border-white/[0.04]"
           >
-            <span>Buka Sumber</span>
+            <span>Open Original</span>
             <svg class="w-3.5 h-3.5 text-[#86868b]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
             </svg>
           </a>
-          <button id="closeModalBtn" class="w-7 h-7 rounded-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-[#86868b] hover:text-white flex items-center justify-center transition">
+          <button id="closeModalBtn" aria-label="Close dialog" class="w-7 h-7 rounded-full bg-[#2c2c2e] hover:bg-[#3a3a3c] text-[#86868b] hover:text-white flex items-center justify-center transition">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -334,9 +334,9 @@
         </div>
       </div>
 
-      <!-- Modal Content Body -->
+      <!-- Content -->
       <div class="px-6 sm:px-8 py-6 overflow-y-auto custom-scrollbar flex-1">
-        <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f5f7] mb-5 leading-snug">Judul Artikel</h2>
+        <h2 id="modalTitle" class="text-xl sm:text-2xl font-bold tracking-tight text-[#f5f5f7] mb-5 leading-snug">Article Title</h2>
         
         <!-- Cover Image -->
         <div id="modalImageContainer" class="mb-6 rounded-2xl overflow-hidden bg-black/40 border border-white/[0.06] hidden">
@@ -349,45 +349,46 @@
         </div>
       </div>
 
-      <!-- Modal Footer -->
+      <!-- Footer -->
       <div class="px-6 py-3 border-t border-white/[0.08] bg-[#161618] flex items-center justify-between text-xs text-[#86868b]">
-        <span>Tekan <kbd class="px-1.5 py-0.5 rounded bg-[#2c2c2e] text-[#a1a1a6] text-[10px]">Esc</kbd> untuk menutup</span>
+        <span>Press <kbd class="px-1.5 py-0.5 rounded bg-[#2c2c2e] text-[#a1a1a6] text-[10px]">Esc</kbd> to close</span>
         <button id="copyLinkBtn" class="text-[#0a84ff] hover:underline flex items-center gap-1 font-medium">
-          Salin Tautan
+          Copy Link
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Main Logic -->
+  <!-- App Script -->
   <script>
-    // Presets with verified working URLs
+    // Presets with verified working feed URLs
     const PRESETS = [
       // Indonesia
-      { name: 'CNN Indonesia', category: 'id', url: 'https://www.cnnindonesia.com/nasional/rss', desc: 'Berita Nasional Indonesia Terkini' },
-      { name: 'CNBC Indonesia', category: 'id', url: 'https://www.cnbcindonesia.com/news/rss', desc: 'Berita Ekonomi, Pasar & Bisnis' },
-      { name: 'Media Indonesia', category: 'id', url: 'https://mediaindonesia.com/feed', desc: 'Harian Media Indonesia' },
-      { name: 'ANTARA Terkini', category: 'id', url: 'https://www.antaranews.com/rss/terkini.xml', desc: 'Kantor Berita Nasional Indonesia' },
-      { name: 'ANTARA Top News', category: 'id', url: 'https://www.antaranews.com/rss/top-news.xml', desc: 'Berita Populer Nasional' },
-      { name: 'Republika', category: 'id', url: 'https://www.republika.co.id/rss', desc: 'Republika Online' },
-      { name: 'Tempo.co', category: 'id', url: 'https://rss.tempo.co/', desc: 'Investigasi & Berita Terkini' },
-      { name: 'Okezone Terkini', category: 'id', url: 'https://sindikasi.okezone.com/index.php/rss/0/RSS2.0', desc: 'Okezone Berita Terkini' },
+      { name: 'CNN Indonesia', category: 'id', url: 'https://www.cnnindonesia.com/nasional/rss', desc: 'National News & Breaking Updates' },
+      { name: 'CNBC Indonesia', category: 'id', url: 'https://www.cnbcindonesia.com/news/rss', desc: 'Finance, Economy & Markets' },
+      { name: 'Media Indonesia', category: 'id', url: 'https://mediaindonesia.com/feed', desc: 'Daily National Newspaper' },
+      { name: 'ANTARA Terkini', category: 'id', url: 'https://www.antaranews.com/rss/terkini.xml', desc: 'National News Agency Latest' },
+      { name: 'ANTARA Top News', category: 'id', url: 'https://www.antaranews.com/rss/top-news.xml', desc: 'Top Headlines & Major Events' },
+      { name: 'Republika', category: 'id', url: 'https://www.republika.co.id/rss', desc: 'Republika Online News' },
+      { name: 'Tempo.co', category: 'id', url: 'https://rss.tempo.co/', desc: 'Investigative & Independent Journalism' },
+      { name: 'Okezone Terkini', category: 'id', url: 'https://sindikasi.okezone.com/index.php/rss/0/RSS2.0', desc: 'Okezone Syndicated Feed' },
 
       // Malaysia
-      { name: 'Malay Mail', category: 'my', url: 'https://www.malaymail.com/feed/rss/malaysia', desc: 'Leading Independent Malaysian News' },
-      { name: 'Malaysiakini (EN)', category: 'my', url: 'https://www.malaysiakini.com/rss/en/news.rss', desc: 'Independent News Portal Malaysia' },
-      { name: 'Free Malaysia Today', category: 'my', url: 'https://www.freemalaysiatoday.com/feeds/rss/headlines', desc: 'FMT Independent News' },
-      { name: 'New Straits Times', category: 'my', url: 'https://www.nst.com.my/feed', desc: 'NST National English Daily' },
-      { name: 'Utusan Malaysia', category: 'my', url: 'https://www.utusan.com.my/feed/', desc: 'Akhbar Arus Perdana Malaysia' },
-      { name: 'SoyaCincau', category: 'my', url: 'https://soyacincau.com/feed/', desc: 'Tech & Gadgets Malaysia' },
+      { name: 'Malay Mail', category: 'my', url: 'https://www.malaymail.com/feed/rss/malaysia', desc: 'Leading Independent Malaysian Daily' },
+      { name: 'Malaysiakini (EN)', category: 'my', url: 'https://www.malaysiakini.com/rss/en/news.rss', desc: 'Independent News Portal' },
+      { name: 'Free Malaysia Today', category: 'my', url: 'https://www.freemalaysiatoday.com/feeds/rss/headlines', desc: 'FMT 24/7 Headlines' },
+      { name: 'New Straits Times', category: 'my', url: 'https://www.nst.com.my/feed', desc: 'NST English News Feed' },
+      { name: 'Utusan Malaysia', category: 'my', url: 'https://www.utusan.com.my/feed/', desc: 'Mainstream National Daily' },
+      { name: 'SoyaCincau', category: 'my', url: 'https://soyacincau.com/feed/', desc: 'Tech & Gadgets News' },
       { name: 'Lowyat.NET', category: 'my', url: 'https://www.lowyat.net/feed/', desc: 'Technology & Digital Lifestyle' },
     ];
 
-    // State
+    // State & Cache
     let currentFeed = PRESETS[0];
     let allArticles = [];
     let isGridView = true;
-    let activeRegionFilter = 'all';
+    let activeRequestId = 0;
+    const feedCache = {};
 
     // DOM Elements
     const idFeedList = document.getElementById('idFeedList');
@@ -470,73 +471,61 @@
       });
     }
 
-    // Multi-strategy resilient Feed Fetching Engine
+    // Resilient Multi-Source Feed Fetching Engine
     async function fetchFeedEngine(url) {
-      // Strategy 0: Local feedcheck API (when run via `feedcheck web`)
+      // 1. If running under feedcheck local web server, use local proxy directly
+      if (window.location.protocol.startsWith('http')) {
+        try {
+          const localUrl = `/api/feed?url=${encodeURIComponent(url)}`;
+          const res = await fetch(localUrl, { signal: AbortSignal.timeout(12000) });
+          if (res.ok) {
+            const text = await res.text();
+            if (text && (text.includes('<rss') || text.includes('<feed') || text.includes('{"version"'))) {
+              return parseFeedXML(text);
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 2. Fetch via feed2json.org (handles RSS/Atom to JSON Feed reliably with generous 12s timeout)
       try {
-        const localApi = `/api/feed?url=${encodeURIComponent(url)}`;
-        const resp = await fetch(localApi, { signal: AbortSignal.timeout(6000) });
-        if (resp.ok) {
-          const text = await resp.text();
-          if (text && (text.includes('<rss') || text.includes('<feed') || text.includes('{"version"'))) {
-            return parseFeedXML(text);
+        const f2j = `https://feed2json.org/convert?url=${encodeURIComponent(url)}`;
+        const res = await fetch(f2j, { signal: AbortSignal.timeout(12000) });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.items && json.items.length > 0) {
+            return parseJSONFeed(json);
           }
         }
       } catch (e) {}
 
-      // Strategy 1: rss2json API (Solves Cloudflare / CORS for Media Indonesia, Malay Mail, Malaysiakini, CNN, CNBC, etc.)
+      // 3. Fallback to rss2json.com (handles Media Indonesia, Malay Mail, Malaysiakini)
       try {
         const r2j = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
-        const resp = await fetch(r2j, { signal: AbortSignal.timeout(8000) });
-        if (resp.ok) {
-          const data = await resp.json();
+        const res = await fetch(r2j, { signal: AbortSignal.timeout(12000) });
+        if (res.ok) {
+          const data = await res.json();
           if (data.status === 'ok' && data.items && data.items.length > 0) {
             return parseRss2JsonData(data);
           }
         }
-      } catch (e) {
-        // Fall through
-      }
+      } catch (e) {}
 
-      // Strategy 2: Direct Fetch
+      // 4. Fallback to Direct Fetch (for CORS-enabled feeds)
       try {
-        const resp = await fetch(url, { 
+        const res = await fetch(url, { 
           headers: { 'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml, */*' },
-          signal: AbortSignal.timeout(5000)
+          signal: AbortSignal.timeout(8000)
         });
-        if (resp.ok) {
-          const text = await resp.text();
+        if (res.ok) {
+          const text = await res.text();
           if (text && (text.includes('<rss') || text.includes('<feed') || text.includes('{"version"'))) {
             return parseFeedXML(text);
           }
         }
       } catch (e) {}
 
-      // Strategy 3: CodeTabs CORS Proxy
-      try {
-        const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
-        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-        if (resp.ok) {
-          const text = await resp.text();
-          if (text && (text.includes('<rss') || text.includes('<feed'))) {
-            return parseFeedXML(text);
-          }
-        }
-      } catch (e) {}
-
-      // Strategy 4: AllOrigins CORS Proxy
-      try {
-        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const resp = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-        if (resp.ok) {
-          const text = await resp.text();
-          if (text && (text.includes('<rss') || text.includes('<feed'))) {
-            return parseFeedXML(text);
-          }
-        }
-      } catch (e) {}
-
-      throw new Error("Tidak dapat mengambil konten feed melalui direct maupun proxy fallback.");
+      throw new Error("Unable to fetch feed content. Run 'feedcheck web' in your terminal for direct, unrestricted local proxy access.");
     }
 
     // Parser for rss2json response
@@ -546,7 +535,6 @@
       const items = (data.items || []).map(item => {
         let image = item.thumbnail || item.enclosure?.link || '';
         
-        // Extract <img> from description if not present
         if (!image && item.description) {
           const imgMatch = item.description.match(/<img[^>]+src=["']([^"']+)["']/i);
           if (imgMatch && imgMatch[1]) image = imgMatch[1];
@@ -561,11 +549,42 @@
         const cleanExcerpt = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
 
         return {
-          title: item.title || 'Tanpa Judul',
+          title: item.title || 'Untitled',
           link: item.link || '#',
           pubDate: item.pubDate || '',
           description: cleanExcerpt,
           fullContent: item.content || item.description || '',
+          image: image,
+          source: title
+        };
+      });
+
+      return { title, desc, items };
+    }
+
+    // Parser for JSON Feed 1.1 format (also returned by feed2json.org)
+    function parseJSONFeed(json) {
+      const title = json.title || currentFeed.name;
+      const desc = json.description || currentFeed.desc;
+      const items = (json.items || []).map(item => {
+        let image = item.image || item.banner_image || '';
+        const rawContent = item.content_html || item.content_text || item.summary || '';
+        
+        if (!image && rawContent) {
+          const imgMatch = rawContent.match(/<img[^>]+src=["']([^"']+)["']/i);
+          if (imgMatch && imgMatch[1]) image = imgMatch[1];
+        }
+
+        const tmp = document.createElement('div');
+        tmp.innerHTML = rawContent;
+        const cleanExcerpt = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
+
+        return {
+          title: item.title || 'Untitled',
+          link: item.url || '#',
+          pubDate: item.date_published || item.date_modified || '',
+          description: cleanExcerpt,
+          fullContent: rawContent,
           image: image,
           source: title
         };
@@ -584,7 +603,7 @@
           const json = JSON.parse(xmlText);
           return parseJSONFeed(json);
         } catch (e) {
-          throw new Error("Format feed tidak dapat diparse sebagai XML.");
+          throw new Error("Unable to parse XML feed payload.");
         }
       }
 
@@ -596,7 +615,7 @@
       const itemNodes = isAtom ? doc.querySelectorAll('entry') : doc.querySelectorAll('item');
 
       itemNodes.forEach(item => {
-        const itemTitle = item.querySelector('title')?.textContent?.trim() || 'Tanpa Judul';
+        const itemTitle = item.querySelector('title')?.textContent?.trim() || 'Untitled';
         
         let link = '';
         if (isAtom) {
@@ -609,7 +628,6 @@
         const dateStr = item.querySelector('pubDate, published, updated, dc\\:date')?.textContent?.trim() || '';
         const rawContent = item.querySelector('content, description, summary')?.textContent?.trim() || '';
 
-        // Image extraction
         let image = '';
         const media = item.querySelector('media\\:content, content[url], media\\:thumbnail');
         if (media && media.getAttribute('url')) {
@@ -642,22 +660,7 @@
       return { title, desc, items };
     }
 
-    function parseJSONFeed(json) {
-      const title = json.title || currentFeed.name;
-      const desc = json.description || currentFeed.desc;
-      const items = (json.items || []).map(item => ({
-        title: item.title || 'Tanpa Judul',
-        link: item.url || '#',
-        pubDate: item.date_published || item.date_modified || '',
-        description: (item.content_text || item.summary || '').slice(0, 250).trim(),
-        fullContent: item.content_html || item.content_text || item.summary || '',
-        image: item.image || item.banner_image || '',
-        source: title
-      }));
-      return { title, desc, items };
-    }
-
-    // Relative Time
+    // Relative Time Formatter (English)
     function formatRelative(dateStr) {
       if (!dateStr) return '';
       const date = new Date(dateStr);
@@ -668,11 +671,11 @@
       const diffHour = Math.floor(diffMin / 60);
       const diffDay = Math.floor(diffHour / 24);
 
-      if (diffMin < 1) return 'Baru saja';
-      if (diffMin < 60) return `${diffMin}m lalu`;
-      if (diffHour < 24) return `${diffHour}h lalu`;
-      if (diffDay < 30) return `${diffDay}d lalu`;
-      return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+      if (diffMin < 1) return 'Just now';
+      if (diffMin < 60) return `${diffMin}m ago`;
+      if (diffHour < 24) return `${diffHour}h ago`;
+      if (diffDay < 30) return `${diffDay}d ago`;
+      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
     }
 
     // Render Articles (Apple Cards)
@@ -717,19 +720,19 @@
                 ${article.title}
               </h3>
               <p class="text-xs text-[#86868b] line-clamp-3 leading-relaxed mb-4">
-                ${article.description || 'Klik untuk membaca artikel lengkap.'}
+                ${article.description || 'Click to view full story.'}
               </p>
             </div>
 
             <div class="pt-3 border-t border-white/[0.06] flex items-center justify-between">
               <span class="text-xs font-medium text-[#0a84ff] flex items-center gap-1">
-                <span>Baca Ringkas</span>
+                <span>Read Story</span>
                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
               </span>
               <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-[#86868b] hover:text-[#f5f5f7] text-xs transition flex items-center gap-1 font-mono">
-                <span>Asli</span>
+                <span>Source</span>
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
                 </svg>
@@ -779,36 +782,70 @@
       document.body.style.overflow = '';
     }
 
-    // Load Feed
-    async function loadFeed(feedUrl) {
+    // Display parsed feed data
+    function displayFeed(parsed) {
+      errorState.classList.add('hidden');
+      emptyState.classList.add('hidden');
+      articlesGrid.classList.remove('hidden');
+
+      activeFeedTitle.textContent = parsed.title || currentFeed.name;
+      activeFeedDesc.textContent = parsed.desc || currentFeed.desc;
+      allArticles = parsed.items;
+
+      articlesCountBadge.textContent = `${allArticles.length} articles`;
+      lastUpdatedBadge.textContent = `Updated: ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+
+      filterArticles();
+    }
+
+    // Load Feed with In-Memory Caching and Concurrency Isolation
+    async function loadFeed(feedUrl, forceRefresh = false) {
+      const requestId = ++activeRequestId;
+
+      // Reset loading states
       loadingState.classList.remove('hidden');
       errorState.classList.add('hidden');
       emptyState.classList.add('hidden');
-      articlesGrid.classList.add('hidden');
-      
-      reloadIcon.classList.add('animate-spin');
 
       activeFeedTitle.textContent = currentFeed.name;
       activeFeedDesc.textContent = currentFeed.url;
       activeRegionBadge.textContent = currentFeed.category === 'id' ? '🇮🇩 Indonesia' : (currentFeed.category === 'my' ? '🇲🇾 Malaysia' : '🌐 Custom Feed');
 
+      // Use cached version for instant responsiveness unless user clicked reload
+      if (!forceRefresh && feedCache[feedUrl]) {
+        loadingState.classList.add('hidden');
+        displayFeed(feedCache[feedUrl]);
+        return;
+      }
+
+      articlesGrid.classList.add('hidden');
+      reloadIcon.classList.add('animate-spin');
+
       try {
         const parsed = await fetchFeedEngine(feedUrl);
-        activeFeedTitle.textContent = parsed.title || currentFeed.name;
-        activeFeedDesc.textContent = parsed.desc || currentFeed.desc;
-        allArticles = parsed.items;
+        
+        // Discard stale response if a newer request was dispatched
+        if (requestId !== activeRequestId) {
+          return;
+        }
 
-        articlesCountBadge.textContent = `${allArticles.length} artikel`;
-        lastUpdatedBadge.textContent = `Diperbarui: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`;
+        // Cache the parsed result
+        feedCache[feedUrl] = parsed;
 
-        filterArticles();
+        displayFeed(parsed);
       } catch (err) {
-        console.error("Feed error:", err);
-        errorMessage.textContent = err.message || "Gagal menghubungi sumber feed.";
+        if (requestId !== activeRequestId) {
+          return;
+        }
+        console.error("Feed fetch error:", err);
+        errorMessage.textContent = err.message || "The feed could not be reached.";
         errorState.classList.remove('hidden');
+        articlesGrid.classList.add('hidden');
       } finally {
-        loadingState.classList.add('hidden');
-        reloadIcon.classList.remove('animate-spin');
+        if (requestId === activeRequestId) {
+          loadingState.classList.add('hidden');
+          reloadIcon.classList.remove('animate-spin');
+        }
       }
     }
 
@@ -817,7 +854,7 @@
       const query = searchInput.value.toLowerCase().trim();
       if (!query) {
         renderArticles(allArticles);
-        articlesCountBadge.textContent = `${allArticles.length} artikel`;
+        articlesCountBadge.textContent = `${allArticles.length} articles`;
         return;
       }
 
@@ -827,13 +864,11 @@
       );
 
       renderArticles(filtered);
-      articlesCountBadge.textContent = `${filtered.length} dari ${allArticles.length}`;
+      articlesCountBadge.textContent = `${filtered.length} of ${allArticles.length}`;
     }
 
-    // Segmented Filter Handlers
+    // Region Segmented Filter
     function setRegionFilter(region) {
-      activeRegionFilter = region;
-      
       [filterAllBtn, filterIdBtn, filterMyBtn].forEach(b => {
         b.className = "flex-1 py-1 rounded-lg text-xs font-medium text-[#86868b] hover:text-white transition";
       });
@@ -857,11 +892,11 @@
     filterIdBtn.addEventListener('click', () => setRegionFilter('id'));
     filterMyBtn.addEventListener('click', () => setRegionFilter('my'));
 
-    // Event Listeners
+    // Search & Action Listeners
     searchInput.addEventListener('input', filterArticles);
 
-    reloadBtn.addEventListener('click', () => loadFeed(currentFeed.url));
-    retryBtn.addEventListener('click', () => loadFeed(currentFeed.url));
+    reloadBtn.addEventListener('click', () => loadFeed(currentFeed.url, true));
+    retryBtn.addEventListener('click', () => loadFeed(currentFeed.url, true));
 
     customFeedForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -883,11 +918,11 @@
 
       currentFeed = customObj;
       renderSidebar();
-      loadFeed(val);
+      loadFeed(val, true);
       closeMobileMenu();
     });
 
-    // Layout toggles
+    // Layout Toggles
     viewGridBtn.addEventListener('click', () => {
       isGridView = true;
       viewGridBtn.classList.add('bg-[#3a3a3c]', 'text-white');
@@ -908,7 +943,7 @@
       renderArticles(allArticles);
     });
 
-    // Modal
+    // Modal Actions
     closeModalBtn.addEventListener('click', closeReaderModal);
     modalBackdrop.addEventListener('click', closeReaderModal);
 
@@ -916,7 +951,7 @@
       if (modalExternalLink.href) {
         navigator.clipboard.writeText(modalExternalLink.href);
         const originalText = copyLinkBtn.innerHTML;
-        copyLinkBtn.innerHTML = `<span>Disalin!</span>`;
+        copyLinkBtn.innerHTML = `<span>Copied!</span>`;
         setTimeout(() => copyLinkBtn.innerHTML = originalText, 1800);
       }
     });
@@ -931,7 +966,7 @@
         searchInput.focus();
       }
       if (e.key.toLowerCase() === 'r' && document.activeElement !== searchInput && document.activeElement !== customFeedInput) {
-        loadFeed(currentFeed.url);
+        loadFeed(currentFeed.url, true);
       }
     });
 
@@ -950,7 +985,7 @@
     closeMobileMenuBtn.addEventListener('click', closeMobileMenu);
     mobileOverlay.addEventListener('click', closeMobileMenu);
 
-    // Initial Start
+    // Initial Load
     renderSidebar();
     loadFeed(currentFeed.url);
   </script>
