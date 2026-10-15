@@ -3,9 +3,11 @@ package cli
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -346,5 +348,77 @@ func TestCLI_Scan_Filters(t *testing.T) {
 	}
 	if !strings.Contains(stdout.String(), "HTTP_ERROR") {
 		t.Errorf("expected HTTP_ERROR in filtered stdout: %s", stdout.String())
+	}
+}
+
+func TestCLI_Scan_ExitFailureWhenFilterHidesFailure(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "not found", http.StatusNotFound)
+	}))
+	defer ts.Close()
+	feedList := filepath.Join(t.TempDir(), "feeds.txt")
+	if err := os.WriteFile(feedList, []byte(ts.URL+"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	var stdout, stderr bytes.Buffer
+	code := Run([]string{"scan", "--file", feedList, "--filter", "healthy", "--format", "json"}, &stdout, &stderr)
+	if code != ExitFailure {
+		t.Errorf("filtered failure: exit = %d, want %d; stderr: %s", code, ExitFailure, stderr.String())
+	}
+	var rep report.Report
+	if err := json.Unmarshal(stdout.Bytes(), &rep); err != nil {
+		t.Fatal(err)
+	}
+	if rep.Summary.Total != 0 || len(rep.Results) != 0 {
+		t.Errorf("display filter should still exclude failure: %+v", rep)
+	}
+}
+
+func TestCLI_Watch_JSONOnlyOnStdout(t *testing.T) {
+	if file := os.Getenv("FEEDCHECK_WATCH_TEST_FILE"); file != "" {
+		os.Exit(Run([]string{"watch", "--file", file, "--interval", "1h", "--format", "json"}, os.Stdout, os.Stderr))
+	}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "not found", http.StatusNotFound)
+	}))
+	defer ts.Close()
+	feedList := filepath.Join(t.TempDir(), "feeds.txt")
+	if err := os.WriteFile(feedList, []byte(ts.URL+"\n"), 0644); err != nil {
+		t.Fatal(err)
+	}
+	cmd := exec.Command(os.Args[0], "-test.run=^TestCLI_Watch_JSONOnlyOnStdout$")
+	cmd.Env = append(os.Environ(), "FEEDCHECK_WATCH_TEST_FILE="+feedList)
+	pipe, err := cmd.StdoutPipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	if err := cmd.Start(); err != nil {
+		t.Fatal(err)
+	}
+	defer func() {
+		if cmd.ProcessState == nil {
+			_ = cmd.Process.Kill()
+			_ = cmd.Wait()
+		}
+	}()
+	decoder := json.NewDecoder(pipe)
+	var first report.Report
+	if err := decoder.Decode(&first); err != nil {
+		t.Fatalf("first watch JSON: %v; stderr: %s", err, stderr.String())
+	}
+	if first.Summary.Total != 1 || first.Summary.Failures != 1 {
+		t.Errorf("unexpected watch report: %+v", first.Summary)
+	}
+	if err := cmd.Process.Signal(os.Interrupt); err != nil {
+		t.Fatal(err)
+	}
+	var extra json.RawMessage
+	if err := decoder.Decode(&extra); err != io.EOF {
+		t.Errorf("stdout after report is not clean JSON stream: %v (%s)", err, extra)
+	}
+	if err := cmd.Wait(); err != nil {
+		t.Fatalf("watch did not stop cleanly: %v; stderr: %s", err, stderr.String())
 	}
 }

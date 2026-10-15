@@ -452,10 +452,15 @@
             ? 'bg-[#0071e3] text-white font-semibold shadow-sm' 
             : 'text-[#86868b] hover:text-[#f5f5f7] hover:bg-[#1c1c1e]'
         }`;
-        btn.innerHTML = `
-          <span class="truncate">${preset.name}</span>
-          ${isActive ? '<span class="w-1.5 h-1.5 rounded-full bg-white shrink-0"></span>' : ''}
-        `;
+        const label = document.createElement('span');
+        label.className = 'truncate';
+        label.textContent = preset.name;
+        btn.appendChild(label);
+        if (isActive) {
+          const marker = document.createElement('span');
+          marker.className = 'w-1.5 h-1.5 rounded-full bg-white shrink-0';
+          btn.appendChild(marker);
+        }
         btn.addEventListener('click', () => {
           currentFeed = preset;
           renderSidebar();
@@ -525,10 +530,67 @@
         }
       } catch (e) {}
 
-      throw new Error("Unable to fetch feed content. Run 'feedcheck web' in your terminal for direct, unrestricted local proxy access.");
+      throw new Error("Unable to fetch feed content. Run 'feedcheck web' in your terminal for public-feed proxy access.");
     }
 
     // Parser for rss2json response
+    function safeArticleURL(value) {
+      if (typeof value !== 'string' || !value.trim() || value.trim() === '#') return '';
+      try {
+        const url = new URL(value, currentFeed.url);
+        return (url.protocol === 'http:' || url.protocol === 'https:') && !url.username && !url.password ? url.href : '';
+      } catch (e) {
+        return '';
+      }
+    }
+
+    function extractText(raw) {
+      return new DOMParser().parseFromString(String(raw || ''), 'text/html').body.textContent || '';
+    }
+
+    // Rebuild a small article-markup allowlist; never insert feed nodes or attributes.
+    function sanitizedContent(raw) {
+      const parsed = new DOMParser().parseFromString(String(raw || ''), 'text/html');
+      const allowed = new Set(['P', 'BR', 'H2', 'H3', 'H4', 'UL', 'OL', 'LI',
+        'STRONG', 'B', 'EM', 'I', 'BLOCKQUOTE', 'PRE', 'CODE', 'A', 'IMG']);
+      const dropped = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED',
+        'FORM', 'INPUT', 'BUTTON', 'SVG', 'MATH', 'TEMPLATE', 'LINK', 'META']);
+      function clean(node) {
+        if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent);
+        const result = document.createDocumentFragment();
+        if (node.nodeType !== Node.ELEMENT_NODE || dropped.has(node.tagName)) return result;
+        let element = result;
+        if (allowed.has(node.tagName)) {
+          if (node.tagName === 'A') {
+            const href = safeArticleURL(node.getAttribute('href'));
+            if (href) {
+              element = document.createElement('a');
+              element.href = href;
+              element.target = '_blank';
+              element.rel = 'noopener noreferrer';
+              element.className = 'text-[#0a84ff] hover:underline';
+            }
+          } else if (node.tagName === 'IMG') {
+            const src = safeArticleURL(node.getAttribute('src'));
+            if (!src) return result;
+            element = document.createElement('img');
+            element.src = src;
+            element.alt = node.getAttribute('alt') || '';
+            element.loading = 'lazy';
+          } else {
+            element = document.createElement(node.tagName.toLowerCase());
+          }
+        }
+        if (node.tagName !== 'IMG') {
+          node.childNodes.forEach(child => element.appendChild(clean(child)));
+        }
+        return element;
+      }
+      const result = document.createDocumentFragment();
+      parsed.body.childNodes.forEach(child => result.appendChild(clean(child)));
+      return result;
+    }
+
     function parseRss2JsonData(data) {
       const title = data.feed?.title || currentFeed.name;
       const desc = data.feed?.description || currentFeed.desc;
@@ -544,9 +606,7 @@
           if (imgMatch && imgMatch[1]) image = imgMatch[1];
         }
 
-        const tmp = document.createElement('div');
-        tmp.innerHTML = item.description || item.content || '';
-        const cleanExcerpt = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
+        const cleanExcerpt = extractText(item.description || item.content || '').slice(0, 250).trim();
 
         return {
           title: item.title || 'Untitled',
@@ -575,9 +635,7 @@
           if (imgMatch && imgMatch[1]) image = imgMatch[1];
         }
 
-        const tmp = document.createElement('div');
-        tmp.innerHTML = rawContent;
-        const cleanExcerpt = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
+        const cleanExcerpt = extractText(rawContent).slice(0, 250).trim();
 
         return {
           title: item.title || 'Untitled',
@@ -642,9 +700,7 @@
           if (imgMatch && imgMatch[1]) image = imgMatch[1];
         }
 
-        const tmp = document.createElement('div');
-        tmp.innerHTML = rawContent;
-        const cleanText = (tmp.textContent || tmp.innerText || '').slice(0, 250).trim();
+        const cleanText = extractText(rawContent).slice(0, 250).trim();
 
         items.push({
           title: itemTitle,
@@ -700,30 +756,30 @@
           card.className = "group relative p-4 sm:p-5 rounded-2xl bg-[#1c1c1e] border border-white/[0.06] hover:border-white/[0.14] hover:bg-[#222225] transition-all duration-200 flex flex-col sm:flex-row gap-4 justify-between cursor-pointer";
         }
 
-        const imageHTML = article.image 
-          ? `<div class="${isGridView ? 'w-full h-44 mb-3.5' : 'w-full sm:w-48 sm:h-32 mb-2 sm:mb-0'} rounded-xl overflow-hidden bg-black shrink-0 border border-white/[0.04]">
-              <img src="${article.image}" alt="" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" onerror="this.parentElement.style.display='none'">
-             </div>`
-          : '';
+        const imageURL = safeArticleURL(article.image);
+        if (imageURL) {
+          const imageContainer = document.createElement('div');
+          imageContainer.className = `${isGridView ? 'w-full h-44 mb-3.5' : 'w-full sm:w-48 sm:h-32 mb-2 sm:mb-0'} rounded-xl overflow-hidden bg-black shrink-0 border border-white/[0.04]`;
+          const image = document.createElement('img');
+          image.src = imageURL;
+          image.alt = '';
+          image.loading = 'lazy';
+          image.className = 'w-full h-full object-cover group-hover:scale-105 transition-transform duration-300';
+          image.addEventListener('error', () => { imageContainer.style.display = 'none'; });
+          imageContainer.appendChild(image);
+          card.appendChild(imageContainer);
+        }
 
-        const relTime = formatRelative(article.pubDate);
-
-        card.innerHTML = `
-          ${imageHTML}
+        card.insertAdjacentHTML('beforeend', `
           <div class="flex-1 flex flex-col justify-between">
             <div>
               <div class="flex items-center gap-1.5 mb-2 text-[11px] text-[#86868b]">
-                <span class="font-semibold text-[#0a84ff] uppercase tracking-wide truncate max-w-[150px]">${article.source}</span>
-                ${relTime ? `<span>•</span><span>${relTime}</span>` : ''}
+                <span data-field="source" class="font-semibold text-[#0a84ff] uppercase tracking-wide truncate max-w-[150px]"></span>
+                <span>•</span><span data-field="time"></span>
               </div>
-              <h3 class="text-[15px] font-semibold text-[#f5f5f7] group-hover:text-white transition-colors line-clamp-2 leading-snug mb-2">
-                ${article.title}
-              </h3>
-              <p class="text-xs text-[#86868b] line-clamp-3 leading-relaxed mb-4">
-                ${article.description || 'Click to view full story.'}
-              </p>
+              <h3 data-field="title" class="text-[15px] font-semibold text-[#f5f5f7] group-hover:text-white transition-colors line-clamp-2 leading-snug mb-2"></h3>
+              <p data-field="description" class="text-xs text-[#86868b] line-clamp-3 leading-relaxed mb-4"></p>
             </div>
-
             <div class="pt-3 border-t border-white/[0.06] flex items-center justify-between">
               <span class="text-xs font-medium text-[#0a84ff] flex items-center gap-1">
                 <span>Read Story</span>
@@ -731,7 +787,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                 </svg>
               </span>
-              <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-[#86868b] hover:text-[#f5f5f7] text-xs transition flex items-center gap-1 font-mono">
+              <a data-field="link" target="_blank" rel="noopener noreferrer" class="text-[#86868b] hover:text-[#f5f5f7] text-xs transition flex items-center gap-1 font-mono">
                 <span>Source</span>
                 <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -739,7 +795,17 @@
               </a>
             </div>
           </div>
-        `;
+        `);
+        card.querySelector('[data-field="source"]').textContent = article.source;
+        card.querySelector('[data-field="title"]').textContent = article.title;
+        card.querySelector('[data-field="description"]').textContent = article.description || 'Click to view full story.';
+        const time = card.querySelector('[data-field="time"]');
+        time.textContent = formatRelative(article.pubDate);
+        if (!time.textContent) time.previousElementSibling.remove();
+        const link = card.querySelector('[data-field="link"]');
+        const linkURL = safeArticleURL(article.link);
+        if (linkURL) link.href = linkURL;
+        else link.remove();
 
         card.addEventListener('click', (e) => {
           if (e.target.tagName !== 'A' && !e.target.closest('a')) {
@@ -756,22 +822,24 @@
       modalTitle.textContent = article.title;
       modalSourceBadge.textContent = article.source;
       modalDateBadge.textContent = formatRelative(article.pubDate);
-      modalExternalLink.href = article.link;
+      const linkURL = safeArticleURL(article.link);
+      modalExternalLink.style.display = linkURL ? '' : 'none';
+      copyLinkBtn.style.display = linkURL ? '' : 'none';
+      if (linkURL) modalExternalLink.href = linkURL;
+      else modalExternalLink.removeAttribute('href');
 
-      if (article.image) {
-        modalImage.src = article.image;
+      const imageURL = safeArticleURL(article.image);
+      if (imageURL) {
+        modalImage.src = imageURL;
         modalImageContainer.classList.remove('hidden');
       } else {
+        modalImage.removeAttribute('src');
         modalImageContainer.classList.add('hidden');
       }
 
-      modalContent.innerHTML = article.fullContent || `<p>${article.description}</p>`;
-      
-      modalContent.querySelectorAll('a').forEach(a => {
-        a.setAttribute('target', '_blank');
-        a.setAttribute('rel', 'noopener noreferrer');
-        a.className = 'text-[#0a84ff] hover:underline';
-      });
+      modalContent.replaceChildren(article.fullContent
+        ? sanitizedContent(article.fullContent)
+        : document.createTextNode(article.description || ''));
 
       readerModal.classList.remove('hidden');
       document.body.style.overflow = 'hidden';

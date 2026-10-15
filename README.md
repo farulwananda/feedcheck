@@ -106,6 +106,9 @@ Export results to a JSON file for pipeline automation:
 feedcheck scan --file feeds.txt --format json --output report.json
 ```
 
+`--filter` and `--only-failures` affect displayed results only: `scan` still exits
+with status `1` if any inspected feed fails, even when the failing row is hidden.
+
 ### 3. Feed Auto-Discovery
 
 Find RSS, Atom, or JSON Feed URLs automatically from any website homepage:
@@ -136,6 +139,10 @@ Continuously audit feed health at regular intervals:
 feedcheck watch --file examples/feeds.txt --interval 10m --only-failures
 ```
 
+Use `--format json` for a machine-readable stream: stdout contains one complete
+JSON report per polling run, with no banner or shutdown message. File read
+errors and diagnostics go to stderr.
+
 ### 6. Markdown & CSV Reporting
 
 Generate GitHub-flavored Markdown tables or CSV spreadsheets:
@@ -154,12 +161,20 @@ This repository includes a standalone **Web RSS Reader** interface featuring App
 
 #### Option 1: Via CLI (Recommended — Zero CORS Issues)
 
-Launch the built-in local web server and Go proxy. This ensures all feeds (Media Indonesia, Malay Mail, Malaysiakini, CNN, Tempo, etc.) load reliably without being blocked by browser CORS policies or Cloudflare challenges:
+Launch the built-in loopback web server and feed proxy from any directory (the
+reader is embedded in the installed CLI):
 
 ```bash
 feedcheck web
 ```
-*Your default browser will automatically open `http://localhost:8080`.*
+Your browser opens `http://127.0.0.1:8080` (or use
+`http://localhost:8080`). The proxy fetches public HTTP(S)
+feeds only; local, private, link-local, reserved, and DNS-resolved internal
+addresses (including redirects) are blocked. Responses are capped at 5 MiB.
+The same-origin reader can use the proxy; other origins cannot read its API.
+
+Article text is escaped, article links and images require HTTP(S), and the
+reader modal retains only safe formatting and links from feed HTML.
 
 #### Option 2: Open Standalone File
 

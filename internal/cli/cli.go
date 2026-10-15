@@ -276,8 +276,10 @@ func runScan(args []string, stdout, stderr io.Writer) int {
 		return ExitUsage
 	}
 
-	if rep.Summary.Failures > 0 {
-		return ExitFailure
+	for _, result := range results {
+		if result.Status.IsFailure() {
+			return ExitFailure
+		}
 	}
 	return ExitSuccess
 }
@@ -401,7 +403,9 @@ func runWatch(args []string, stdout, stderr io.Writer) int {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	fmt.Fprintf(stdout, "feedcheck watch: monitoring feeds from %q every %v (Press Ctrl+C to stop)\n", targetFile, *interval)
+	if strings.ToLower(*format) != "json" {
+		fmt.Fprintf(stdout, "feedcheck watch: monitoring feeds from %q every %v (Press Ctrl+C to stop)\n", targetFile, *interval)
+	}
 
 	ticker := time.NewTicker(*interval)
 	defer ticker.Stop()
@@ -435,7 +439,9 @@ func runWatch(args []string, stdout, stderr io.Writer) int {
 		filteredResults := report.FilterResults(results, *onlyFailures, filterList)
 		rep := report.BuildReport(filteredResults, now)
 
-		fmt.Fprintf(stdout, "\n=== [%s] Inspection Run ===\n", now.Format(time.RFC3339))
+		if strings.ToLower(*format) != "json" {
+			fmt.Fprintf(stdout, "\n=== [%s] Inspection Run ===\n", now.Format(time.RFC3339))
+		}
 		_ = writeReport(rep, *format, "", stdout, stderr, now)
 	}
 
@@ -445,7 +451,9 @@ func runWatch(args []string, stdout, stderr io.Writer) int {
 	for {
 		select {
 		case <-ctx.Done():
-			fmt.Fprintln(stdout, "\nfeedcheck watch: stopped.")
+			if strings.ToLower(*format) != "json" {
+				fmt.Fprintln(stdout, "\nfeedcheck watch: stopped.")
+			}
 			return ExitSuccess
 		case <-ticker.C:
 			runIteration()
@@ -522,54 +530,7 @@ func runWeb(args []string, stdout, stderr io.Writer) int {
 		return ExitUsage
 	}
 
-	htmlContent, err := os.ReadFile("web/index.html")
-	if err != nil {
-		fmt.Fprintf(stderr, "feedcheck web: could not locate web/index.html: %v\n", err)
-		return ExitUsage
-	}
-
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write(htmlContent)
-	})
-
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-	}
-
-	mux.HandleFunc("/api/feed", func(w http.ResponseWriter, r *http.Request) {
-		targetURL := r.URL.Query().Get("url")
-		if targetURL == "" {
-			http.Error(w, "missing 'url' query parameter", http.StatusBadRequest)
-			return
-		}
-
-		validated, err := input.ValidateURL(targetURL)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		req, err := http.NewRequestWithContext(r.Context(), http.MethodGet, validated, nil)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		req.Header.Set("User-Agent", "feedcheck/1.0 (+https://github.com/farulwananda/feedcheck)")
-		req.Header.Set("Accept", "application/rss+xml, application/atom+xml, application/feed+json, application/xml, text/xml, */*")
-
-		resp, err := client.Do(req)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("fetch error: %v", err), http.StatusBadGateway)
-			return
-		}
-		defer resp.Body.Close()
-
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Content-Type", resp.Header.Get("Content-Type"))
-		io.Copy(w, resp.Body)
-	})
+	mux := newWebHandler(fmt.Sprintf("127.0.0.1:%d", *port), newWebClient())
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf("127.0.0.1:%d", *port),
